@@ -106,7 +106,6 @@ dependencies {
     implementation("com.google.zxing:javase:3.5.3") {
         exclude group: 'com.github.jai-imageio', module: 'jai-imageio-core'
     }
-    implementation "org.nanohttpd:nanohttpd:2.3.1"
     // Pinned to the version Gradle already resolves to: javacv brings jna up to
     // 5.15.0 on the compile classpath, so bundling 5.7.0 shipped a jar the code was never
     // compiled against, and jna-platform 5.15.0 would call into methods it does not have.

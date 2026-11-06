@@ -22,7 +22,6 @@ import dev.bkclient.ui.menu.spotlight.components.SpotlightModule;
 import dev.bkclient.ui.menu.spotlight.components.SpotlightSettings;
 import dev.bkclient.systems.config.ConfigFile;
 import dev.bkclient.systems.localization.Localizator;
-import dev.bkclient.systems.supabase.SupabaseService;
 import dev.bkclient.utility.animation.base.Animation;
 import dev.bkclient.utility.animation.base.Easing;
 import dev.bkclient.utility.colors.ColorRGBA;
@@ -75,9 +74,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
     private boolean expanded = false;
     private boolean showConfigs = false;
     private boolean showFriends = false;
-    private String airdropTargetConfig;
-    private final StringBuilder airdropInput = new StringBuilder();
-    private static final Identifier AIRDROP_ICON = BKClientInit.id("icons/airdrop-receive.png");
     private final Animation resultsHeightFactor = new Animation(200L, 1.0F, Easing.QUARTIC_OUT);
     private final Animation blurFadeAnim = new Animation(600L, Easing.QUARTIC_OUT);
     private final Timer blurFadeTimer = new Timer();
@@ -341,19 +337,18 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
    }
 
     private void renderSearchField(UIContext context, float alpha, float splitProgress) {
-       if (this.airdropTargetConfig != null) return;
 
        boolean searchDark = BKClientInit.getInstance().getThemeManager().getCurrentTheme() != null
           && BKClientInit.getInstance().getThemeManager().getCurrentTheme().isDark();
        ColorRGBA searchIconColor = searchDark ? ColorRGBA.WHITE : new ColorRGBA(10, 10, 10);
        float w = (PILL_WIDTH - 28.0F) * (1.0F - 0.45F * splitProgress);
-       
+
        float iconSize = 16.0F;
-       
+
        RenderSystem.setShaderTexture(0, BKClientInit.id("sf_symbold/spotlight/search.png"));
        org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER, org.lwjgl.opengl.GL11.GL_LINEAR);
        org.lwjgl.opengl.GL11.glTexParameteri(org.lwjgl.opengl.GL11.GL_TEXTURE_2D, org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER, org.lwjgl.opengl.GL11.GL_LINEAR);
-       
+
        context.drawTexture(
           BKClientInit.id("sf_symbold/spotlight/search.png"),
           this.pillX + 14.0F,
@@ -374,8 +369,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
        }
        this.prevFocused = focused;
     }
-
-
 
    private void renderHoverCircles(UIContext context, float alpha, float splitProgress) {
       boolean circlesDark = BKClientInit.getInstance().getThemeManager().getCurrentTheme() != null
@@ -602,7 +595,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
           float itemY = listY + yOffset;
           boolean hovered = GuiUtility.isHovered(listX, itemY, listW, CONFIG_HEIGHT, context.getMouseX(), context.getMouseY());
 
-            boolean isAirdrop = cf.getFileName().equals(this.airdropTargetConfig);
             ColorRGBA bg = dark
                ? new ColorRGBA(255, 255, 255, (int)(12 * (hovered ? 1 : 0) * alpha))
                : new ColorRGBA(0, 0, 0, (int)(5 * (hovered ? 1 : 0) * alpha));
@@ -610,41 +602,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
 
            boolean isCurrent = BKClientInit.getInstance().getConfigManager().getCurrent() == cf;
 
-           if (isAirdrop) {
-              String inputText = this.airdropInput.length() > 0 ? this.airdropInput.toString() : "Receive code (12 characters)...";
-              ColorRGBA inputColor = this.airdropInput.length() > 0
-                 ? Colors.getTextColor().mulAlpha(0.9F * alpha)
-                 : Colors.getTextColor().mulAlpha(0.3F * alpha);
-              context.drawText(
-                 Fonts.MEDIUM.getFont(7.0F),
-                 inputText,
-                 listX + 10.0F,
-                 itemY + GuiUtility.getMiddleOfBox(Fonts.MEDIUM.getFont(7.0F).height(), CONFIG_HEIGHT) - 0.5F,
-                 inputColor
-              );
-
-              float btnY = itemY + (CONFIG_HEIGHT - 14.0F) / 2.0F;
-              float btnRight = listX + listW - 6.0F;
-
-              float sendX = btnRight - 30.0F;
-              boolean sendHovered = GuiUtility.isHovered(sendX, btnY, 14.0F, 14.0F, context.getMouseX(), context.getMouseY());
-              ColorRGBA sendColor = sendHovered
-                 ? Colors.getAccent().withAlpha((int)(200 * alpha))
-                 : Colors.getTextColor().mulAlpha(0.4F * alpha);
-              context.drawTexture(AIRDROP_ICON, sendX + 1.0F, btnY + 1.0F, 12.0F, 12.0F, sendColor);
-
-              boolean cancelHovered = GuiUtility.isHovered(btnRight - 12.0F, btnY, 12.0F, 14.0F, context.getMouseX(), context.getMouseY());
-              ColorRGBA cancelColor = cancelHovered
-                 ? new ColorRGBA(255, 80, 80, (int)(200 * alpha))
-                 : Colors.getTextColor().mulAlpha(0.3F * alpha);
-              context.drawText(
-                 Fonts.MEDIUM.getFont(7.0F),
-                 "X",
-                 btnRight - 7.0F - Fonts.MEDIUM.getFont(7.0F).width("X") / 2.0F,
-                 itemY + GuiUtility.getMiddleOfBox(Fonts.MEDIUM.getFont(7.0F).height(), CONFIG_HEIGHT) - 0.5F,
-                 cancelColor
-              );
-           } else {
               ColorRGBA nameColor = isCurrent ? Colors.getAccent().withAlpha((int)(255 * alpha)) : Colors.getTextColor().mulAlpha(0.85F * alpha);
               context.drawText(
                  Fonts.MEDIUM.getFont(7.0F),
@@ -657,16 +614,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
               float btnY = itemY + (CONFIG_HEIGHT - 14.0F) / 2.0F;
               float btnRight = listX + listW - 6.0F;
 
-              if (dev.bkclient.systems.DeferredFeatures.AIRDROP) {
-              float airdropX = btnRight - 14.0F - 14.0F - 4.0F;
-              boolean airdropHovered = GuiUtility.isHovered(airdropX, btnY, 14.0F, 14.0F, context.getMouseX(), context.getMouseY());
-              RenderSystem.setShaderTexture(0, AIRDROP_ICON);
-              ColorRGBA airdropColor = airdropHovered
-                 ? Colors.getAccent().withAlpha((int)(200 * alpha))
-                 : Colors.getTextColor().mulAlpha(0.4F * alpha);
-              context.drawTextureSmooth(AIRDROP_ICON, airdropX + 1.0F, btnY + 1.0F, 12.0F, 12.0F, airdropColor);
-
-              }
               boolean delHovered = GuiUtility.isHovered(btnRight - 14.0F, btnY, 14.0F, 14.0F, context.getMouseX(), context.getMouseY());
               ColorRGBA delColor = delHovered
                  ? new ColorRGBA(255, 80, 80, (int)(200 * alpha))
@@ -682,7 +629,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
               if (hovered) {
                  CursorUtility.set(CursorType.HAND);
               }
-           }
 
           yOffset += CONFIG_HEIGHT + 2.0F;
        }
@@ -838,30 +784,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
            if (GuiUtility.isHovered(listX, itemY, listW, CONFIG_HEIGHT, mouseX, mouseY)) {
             float btnY = itemY + (CONFIG_HEIGHT - 14.0F) / 2.0F;
             float btnRight = listX + listW - 6.0F;
-
-            if (this.airdropTargetConfig != null && cf.getFileName().equals(this.airdropTargetConfig)) {
-               if (GuiUtility.isHovered(btnRight - 12.0F, btnY, 12.0F, 14.0F, mouseX, mouseY)) {
-                  this.airdropTargetConfig = null;
-                  this.airdropInput.setLength(0);
-                  return true;
-               }
-               if (GuiUtility.isHovered(btnRight - 30.0F, btnY, 14.0F, 14.0F, mouseX, mouseY)) {
-                  ConfigFile target = BKClientInit.getInstance().getConfigManager().getConfig(this.airdropTargetConfig);
-                  String data = target != null ? target.saveToString() : "";
-                  SupabaseService.getInstance().sendAirdrop(this.airdropInput.toString(), this.airdropTargetConfig, data);
-                  this.airdropTargetConfig = null;
-                  this.airdropInput.setLength(0);
-                  return true;
-               }
-               return true;
-            }
-
-             float airdropX = btnRight - 32.0F;
-            if (dev.bkclient.systems.DeferredFeatures.AIRDROP && GuiUtility.isHovered(airdropX, btnY, 14.0F, 14.0F, mouseX, mouseY)) {
-               this.airdropTargetConfig = cf.getFileName();
-               this.airdropInput.setLength(0);
-               return true;
-            }
 
             if (GuiUtility.isHovered(btnRight - 12.0F, btnY, 12.0F, 14.0F, mouseX, mouseY)) {
                  cf.delete();
@@ -1029,16 +951,12 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
                       this.expanded = !this.expanded;
                       this.showConfigs = false;
                       this.showFriends = false;
-                      this.airdropTargetConfig = null;
-                      this.airdropInput.setLength(0);
                       this.searchField.setPreview(Localizator.translate("spotlight.title"));
                       this.scrollHandler.reset();
                       break;
                    case 1:
                       this.showConfigs = !this.showConfigs;
                       if (!this.showConfigs) {
-                         this.airdropTargetConfig = null;
-                         this.airdropInput.setLength(0);
                       }
                       this.expanded = false;
                       this.showFriends = false;
@@ -1052,8 +970,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
                       this.showFriends = !this.showFriends;
                       this.expanded = false;
                       this.showConfigs = false;
-                      this.airdropTargetConfig = null;
-                      this.airdropInput.setLength(0);
                       this.currentCategory = null;
                       this.searchField.setPreview(this.showFriends ? Localizator.translate("spotlight.search.friends") : Localizator.translate("spotlight.title"));
                       this.searchField.clear();
@@ -1127,24 +1043,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
           this.searchField.onKeyPressed(keyCode, scanCode, modifiers);
        }
 
-       if (this.airdropTargetConfig != null) {
-          if (keyCode == 257 || keyCode == 335) {
-             String target = this.airdropInput.toString().trim();
-             if (!target.isEmpty()) {
-                ConfigFile cf = BKClientInit.getInstance().getConfigManager().getConfig(this.airdropTargetConfig);
-                String configData = cf != null ? cf.saveToString() : "";
-                SupabaseService.getInstance().sendAirdrop(target, this.airdropTargetConfig, configData);
-             }
-             this.airdropTargetConfig = null;
-             this.airdropInput.setLength(0);
-          } else if (keyCode == 256) {
-             this.airdropTargetConfig = null;
-             this.airdropInput.setLength(0);
-          } else if (keyCode == 259 && this.airdropInput.length() > 0) {
-             this.airdropInput.setLength(this.airdropInput.length() - 1);
-          }
-       }
-
       for (SpotlightModule module : this.allModules) {
          module.onKeyPressed(keyCode, scanCode, modifiers);
       }
@@ -1156,9 +1054,7 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
        if (this.searchField.isFocused() && !this.isBindingModule()) {
           this.searchField.charTyped(chr, modifiers);
        }
-       if (this.airdropTargetConfig != null && chr >= ' ' && chr != 127) {
-          this.airdropInput.append(chr);
-       }
+
       for (SpotlightSettings window : this.windows) {
          window.charTyped(chr, modifiers);
       }
@@ -1177,8 +1073,6 @@ public class SpotlightScreen extends MenuScreen implements IMinecraft, IScaledRe
       this.searchField.clear();
       this.searchField.setPreview(Localizator.translate("spotlight.title"));
       this.currentCategory = null;
-       this.airdropTargetConfig = null;
-       this.airdropInput.setLength(0);
         this.windows.clear();
         BKClientInit.getInstance().getModuleManager().getModule(MenuModule.class).disable();
       BKClientInit.getInstance().getFileManager().writeFile("client");

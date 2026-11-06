@@ -3,7 +3,7 @@ package dev.bkclient.systems.modules.modules.bkmods.automarket;
 import dev.bkclient.systems.modules.modules.bkmods.AutoMarketHistoryManager;
 import dev.bkclient.systems.setting.settings.rynek.PriceEntry;
 import dev.bkclient.systems.localization.Localizator;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import dev.bkclient.utility.inventory.ItemStackExtractor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemStack;
@@ -752,8 +752,8 @@ public final class AutoSellController {
 
         // Sale detection (sold item)
         // 1:1 Parity: Must NOT contain error keywords to be a real sale
-        boolean isError = cleanTextLower.contains(XSK.KW_PRAWDOPODOBNIE) || cleanTextLower.contains(XSK.KW_USUN)
-                || cleanTextLower.contains(XSK.KW_JUZ_SPRZEDAN + "e") || cleanTextLower.contains(XSK.KW_ALREADY_SOLD);
+        boolean isError = cleanTextLower.contains(ClientConstants.KW_PRAWDOPODOBNIE) || cleanTextLower.contains(ClientConstants.KW_USUN)
+                || cleanTextLower.contains(ClientConstants.KW_JUZ_SPRZEDAN + "e") || cleanTextLower.contains(ClientConstants.KW_ALREADY_SOLD);
 
         // Minestar sprzeda\u017C: "Twoj przedmiot na rynku zostal kupiony przez X za Y"
         boolean isMinestarSale = (cleanTextLower.contains("tw\u00F3j przedmiot") || cleanTextLower.contains("twoj przedmiot"))
@@ -761,10 +761,10 @@ public final class AutoSellController {
 
         boolean rapyTitleSale = isRapyTitleSale(normalizeSignalText(cleanTextLower));
         if (!isError && (rapyTitleSale
-                || cleanTextLower.contains(XSK.KW_SPRZEDANY_BASE) || cleanTextLower.contains(XSK.KW_BOUGHT_BASE)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANY_BASE) || cleanTextLower.contains(ClientConstants.KW_BOUGHT_BASE)
                 || cleanTextLower.contains("sold") || cleanTextLower.contains("dodane")
-                || cleanTextLower.contains(XSK.KW_ZAROBEK) || cleanTextLower.contains(XSK.KW_SPRZEDALES)
-                || cleanTextLower.contains(XSK.KW_SPRZEDANO) || isMinestarSale)) {
+                || cleanTextLower.contains(ClientConstants.KW_ZAROBEK) || cleanTextLower.contains(ClientConstants.KW_SPRZEDALES)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANO) || isMinestarSale)) {
             sessionSold++;
 
             String profit = extractPrice(cleanTextLower);

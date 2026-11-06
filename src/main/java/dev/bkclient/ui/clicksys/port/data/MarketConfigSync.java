@@ -19,7 +19,7 @@ public final class MarketConfigSync extends ConfigSync {
     @Override public List<ConfigEntry> getList(){
         var market=ConfigImport.market();market.configManager.refresh();var list=new ArrayList<ConfigEntry>();
         for(var profile:market.configManager.getConfigs()){
-            var entry=new ConfigEntry();entry.setText(profile.filename);entry.setText2(profile.server.equals(XSK.DEFAULT_SERVER)?"Local profile":profile.server);
+            var entry=new ConfigEntry();entry.setText(profile.filename);entry.setText2(profile.server.equals(ClientConstants.DEFAULT_SERVER)?"Local profile":profile.server);
             entry.setText4(java.time.Instant.ofEpochMilli(profile.date).toString());
             entry.setFlag(profile.filename.equalsIgnoreCase(market.getActiveProfile()));
             entry.setFlag3(entry.isFlag());list.add(entry);
@@ -41,7 +41,7 @@ public final class MarketConfigSync extends ConfigSync {
         try{
             JsonObject json=new JsonObject(),settings=new JsonObject();
             for(var setting:ConfigImport.market().getMarketSettings())settings.add(setting.getName(),setting.save());
-            json.add(XSK.JSON_SETTINGS,settings);json.addProperty(XSK.JSON_SERVER,ServerUtility.getCurrentServerAddress("Singleplayer"));
+            json.add(ClientConstants.JSON_SETTINGS,settings);json.addProperty(ClientConstants.JSON_SERVER,ServerUtility.getCurrentServerAddress("Singleplayer"));
             done.accept(ConfigImport.confirm(new ConfigImport.Draft(ConfigImport.Kind.MARKET,json,name,"",""),name,false));
         }catch(Exception e){report(false,e.getMessage());done.accept(null);}
     }

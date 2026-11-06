@@ -3270,7 +3270,6 @@ modules.descriptions.aurasprint=Utrzymuje sprint
 modules.descriptions.auratpssync=Dostosowuje ataki do szybkości serwera
 modules.descriptions.nukeraura=Nagrywa i odtwarza ruch celownika
 modules.descriptions.triggerbot=Atakuje cele pod celownikiem
-modules.descriptions.airdrop=Udostępnia konfiguracje innym graczom
 modules.descriptions.chat_spammer=Powtarza wybraną wiadomość na czacie
 modules.descriptions.profiler=Zapisuje raporty wydajności
 modules.descriptions.streamer_mode=Ukrywa nazwy i prywatne informacje

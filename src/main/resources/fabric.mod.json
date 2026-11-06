@@ -15,30 +15,27 @@
   "environment": "client",
   "entrypoints": {
     "preLaunch": [
-        "dev.bkclient.MagicClassProposer",
-        "dev.bkclient.BKClientPreLaunch"
+      "dev.bkclient.MagicClassProposer",
+      "dev.bkclient.BKClientPreLaunch"
     ]
-},
+  },
   "mixins": [
     "bkclient.mixins.json",
     "bkclient-larp.mixins.json"
   ],
   "depends": {
-    "fabricloader": "\u003e\u003d0.16.14",
+    "fabricloader": ">=0.16.14",
     "minecraft": "~1.21.4",
-    "java": "\u003e\u003d21",
+    "java": ">=21",
     "fabric-api": "*"
   },
-"accessWidener": "bkclient.accesswidener",
+  "accessWidener": "bkclient.accesswidener",
   "jars": [
     {
       "file": "META-INF/jars/core-3.5.3.jar"
     },
     {
       "file": "META-INF/jars/javase-3.5.3.jar"
-    },
-    {
-      "file": "META-INF/jars/nanohttpd-2.3.1.jar"
     }
   ]
 }

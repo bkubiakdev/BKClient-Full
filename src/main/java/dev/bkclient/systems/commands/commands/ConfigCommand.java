@@ -21,7 +21,7 @@ import dev.bkclient.systems.notifications.ConfigSavedPopup;
 import dev.bkclient.systems.file.FileManager;
 import dev.bkclient.utility.game.CloudConfigUtility;
 import dev.bkclient.utility.game.MessageUtility;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 
@@ -113,7 +113,7 @@ public final class ConfigCommand {
                   MessageUtility.error(Text.of("Config upload failed"));
                   return;
                }
-               String code = XSK.CLOUD_PREFIX + result.key;
+               String code = ClientConstants.CLOUD_PREFIX + result.key;
                MinecraftClient.getInstance().execute(() -> {
                   MinecraftClient.getInstance().keyboard.setClipboard(code);
                   MessageUtility.info(Text.of("Config published. Code copied: " + code));
@@ -127,11 +127,11 @@ public final class ConfigCommand {
 
       private void importConfig(String input) {
          if (input == null || input.isBlank()) return;
-         String raw = input.startsWith(XSK.CLOUD_PREFIX) ? input.substring(XSK.CLOUD_PREFIX.length()) : input;
+         String raw = input.startsWith(ClientConstants.CLOUD_PREFIX) ? input.substring(ClientConstants.CLOUD_PREFIX.length()) : input;
          String code = raw;
          String deletionKey = null;
-         if (raw.contains(XSK.BURN_SEP)) {
-            String[] parts = raw.split(java.util.regex.Pattern.quote(XSK.BURN_SEP), 2);
+         if (raw.contains(ClientConstants.BURN_SEP)) {
+            String[] parts = raw.split(java.util.regex.Pattern.quote(ClientConstants.BURN_SEP), 2);
             code = parts[0];
             deletionKey = parts[1];
          } else if (raw.length() > 12) {

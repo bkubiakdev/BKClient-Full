@@ -4,7 +4,7 @@ import dev.bkclient.BKClientInit;
 import dev.bkclient.systems.setting.settings.rynek.PriceEntry;
 import dev.bkclient.systems.localization.Localizator;
 import dev.bkclient.systems.notifications.NotificationType;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
@@ -40,7 +40,7 @@ public final class AutoMarketController {
     private static final java.util.regex.Pattern BK_RE_1 = java.util.regex.Pattern.compile("\u00A7[0-9a-fk-or]");
 
 
-    private static final Pattern PAGE_PATTERN = Pattern.compile(XSK.PAGE_REGEX);
+    private static final Pattern PAGE_PATTERN = Pattern.compile(ClientConstants.PAGE_REGEX);
     private static final long MODE_FIRST_SCAN_WINDOW_MS = 220L;
 
     public volatile boolean debugMode = false;
@@ -252,8 +252,8 @@ public final class AutoMarketController {
         if (entries != null) {
             for (PriceEntry e : entries) {
                 String mat = e.getMaterial().toLowerCase();
-                if (mat.startsWith(XSK.MINECRAFT_PFX))
-                    mat = mat.substring(XSK.MINECRAFT_PFX.length());
+                if (mat.startsWith(ClientConstants.MINECRAFT_PFX))
+                    mat = mat.substring(ClientConstants.MINECRAFT_PFX.length());
                 map.computeIfAbsent(mat, k -> new java.util.ArrayList<>()).add(e);
             }
         }
@@ -278,7 +278,7 @@ public final class AutoMarketController {
         this.isAnarchia = v;
         if (v && !isSortingDisabledForMode()) {
             this.aggressiveMode = true;
-            this.sortingKeyword = XSK.SORT_KW_NOWSZE;
+            this.sortingKeyword = ClientConstants.SORT_KW_NOWSZE;
         }
     }
 
@@ -423,7 +423,7 @@ public final class AutoMarketController {
             initialScanPauseUntil = 0;
         }
         active = true;
-        sendFeedback("\u00A7aSkaner uruchomiony! Tryb: " + (aggressiveMode ? XSK.MODE_AGGRESSIVE : XSK.MODE_NORMAL));
+        sendFeedback("\u00A7aSkaner uruchomiony! Tryb: " + (aggressiveMode ? ClientConstants.MODE_AGGRESSIVE : ClientConstants.MODE_NORMAL));
     }
 
     public void cancel() {
@@ -452,8 +452,8 @@ public final class AutoMarketController {
         // frame) ---
         // (applied in the syncId-change block below)
 
-        boolean titleIsMarket = currentTitle.contains(XSK.TITLE_RYNEK) || currentTitle.contains(XSK.TITLE_AUKCJ)
-                || currentTitle.contains(XSK.TITLE_AUCTION) || currentTitle.contains(XSK.TITLE_ITEMY)
+        boolean titleIsMarket = currentTitle.contains(ClientConstants.TITLE_RYNEK) || currentTitle.contains(ClientConstants.TITLE_AUKCJ)
+                || currentTitle.contains(ClientConstants.TITLE_AUCTION) || currentTitle.contains(ClientConstants.TITLE_ITEMY)
                 || currentTitle.contains("aukcje") || currentTitle.contains("aukcja")
                 || (!customMarketTitle.isEmpty() && currentTitle.contains(customMarketTitle.toLowerCase()));
 
@@ -515,15 +515,15 @@ public final class AutoMarketController {
             if (needConfirm && !hasSellerLore) {
                 boolean isConfirm = (confirmItemName != null && !confirmItemName.isEmpty())
                         ? name.contains(confirmItemName.toLowerCase())
-                        : (name.contains(XSK.KW_POTWIERDZ1) || name.contains(XSK.KW_POTWIERDZ2)
-                                || name.contains(XSK.KW_CONFIRM) || name.contains(XSK.KW_ZAKUP)
-                                || name.contains(XSK.KW_POTWIERDZANIE) || name.contains(XSK.KW_NA_PEWNO)
-                                || name.contains(XSK.KW_SURE)
+                        : (name.contains(ClientConstants.KW_POTWIERDZ1) || name.contains(ClientConstants.KW_POTWIERDZ2)
+                                || name.contains(ClientConstants.KW_CONFIRM) || name.contains(ClientConstants.KW_ZAKUP)
+                                || name.contains(ClientConstants.KW_POTWIERDZANIE) || name.contains(ClientConstants.KW_NA_PEWNO)
+                                || name.contains(ClientConstants.KW_SURE)
                                 || (currentTitle.contains("zakup") && name.contains("produkt")));
                 // Like SAC: cancel button also proves we are in a confirm screen even if
                 // the confirm button has an unexpected name. Don't click cancel,
                 // but use it as a detection signal (sentinel -2).
-                boolean isCancelOnly = !isConfirm && (name.contains(XSK.KW_ANULUJ) || name.contains(XSK.KW_CANCEL));
+                boolean isCancelOnly = !isConfirm && (name.contains(ClientConstants.KW_ANULUJ) || name.contains(ClientConstants.KW_CANCEL));
                 if (isConfirm) {
                     confirmSlotFound = i;
                 } else if (isCancelOnly && confirmSlotFound == -1) {
@@ -539,9 +539,9 @@ public final class AutoMarketController {
         // confirmSlotFound >= 0: exact slot found; -2: screen detected via cancel
         // button only
         final boolean confirmKeywords = (confirmSlotFound >= 0 || confirmSlotFound == -2)
-                || currentTitle.contains(XSK.KW_NA_PEWNO) || currentTitle.contains(XSK.KW_SURE)
-                || currentTitle.contains(XSK.KW_POTWIERDZ1) || currentTitle.contains(XSK.KW_POTWIERDZ2)
-                || currentTitle.contains(XSK.KW_CONFIRM)
+                || currentTitle.contains(ClientConstants.KW_NA_PEWNO) || currentTitle.contains(ClientConstants.KW_SURE)
+                || currentTitle.contains(ClientConstants.KW_POTWIERDZ1) || currentTitle.contains(ClientConstants.KW_POTWIERDZ2)
+                || currentTitle.contains(ClientConstants.KW_CONFIRM)
                 || (currentTitle.contains("zakup") && marketItemCount <= 1);
 
         boolean looksLikeMarket = ((minestarMode || rapyMode) && ignoreMarketTitle) || titleIsMarket || marketItemCount >= 2;
@@ -561,11 +561,11 @@ public final class AutoMarketController {
             String address = (mc.getCurrentServerEntry() != null)
                     ? mc.getCurrentServerEntry().address.toLowerCase()
                     : "";
-            boolean isAn = address.contains(XSK.ANARCHIA_GG) || address.contains(XSK.ANARCHIA_PL);
+            boolean isAn = address.contains(ClientConstants.ANARCHIA_GG) || address.contains(ClientConstants.ANARCHIA_PL);
             if (isAn && !isSortingDisabledForMode()) {
                 this.setSortingSlot(53);
                 this.setNextPageSlot(51);
-                this.setSortingKeyword(XSK.SORT_KW_NOWSZE);
+                this.setSortingKeyword(ClientConstants.SORT_KW_NOWSZE);
                 this.setAggressiveMode(true);
                 this.isAnarchia = true;
             }
@@ -584,14 +584,14 @@ public final class AutoMarketController {
         // 1. FAST EXIT: If we are already doing a purchase, handle confirmation
         if (buyingItem || purchasePending) {
             String cleanTitle = currentTitle.toLowerCase();
-            boolean isSuccess = cleanTitle.contains(XSK.KW_ZAKUPION) || cleanTitle.contains(XSK.KW_SUKCES)
-                    || cleanTitle.contains(XSK.KW_POMYSLN) || cleanTitle.contains(XSK.KW_BOUGHT)
-                    || cleanTitle.contains(XSK.KW_GRATULACJ);
+            boolean isSuccess = cleanTitle.contains(ClientConstants.KW_ZAKUPION) || cleanTitle.contains(ClientConstants.KW_SUKCES)
+                    || cleanTitle.contains(ClientConstants.KW_POMYSLN) || cleanTitle.contains(ClientConstants.KW_BOUGHT)
+                    || cleanTitle.contains(ClientConstants.KW_GRATULACJ);
 
-            boolean isFail = cleanTitle.contains(XSK.KW_BRAK3) || cleanTitle.contains(XSK.KW_BRAK2)
-                    || cleanTitle.contains(XSK.KW_JUZ_SPRZEDAN) || cleanTitle.contains(XSK.KW_USUNIETO)
-                    || cleanTitle.contains(XSK.KW_PRAWDOPODOBNIE) || cleanTitle.contains(XSK.KW_ERROR)
-                    || cleanTitle.contains(XSK.KW_BLAD_PL);
+            boolean isFail = cleanTitle.contains(ClientConstants.KW_BRAK3) || cleanTitle.contains(ClientConstants.KW_BRAK2)
+                    || cleanTitle.contains(ClientConstants.KW_JUZ_SPRZEDAN) || cleanTitle.contains(ClientConstants.KW_USUNIETO)
+                    || cleanTitle.contains(ClientConstants.KW_PRAWDOPODOBNIE) || cleanTitle.contains(ClientConstants.KW_ERROR)
+                    || cleanTitle.contains(ClientConstants.KW_BLAD_PL);
 
             handleConfirmScreen(handler, syncId, currentTitle, now, confirmKeywords, isSuccess, isFail);
             return;
@@ -706,8 +706,8 @@ public final class AutoMarketController {
         // Confirm branch fallback
         if (confirmKeywords && (buyingItem || purchasePending)) {
             String cleanTitle = currentTitle.toLowerCase();
-            boolean isSuccess = cleanTitle.contains(XSK.KW_ZAKUPION) || cleanTitle.contains(XSK.KW_SUKCES);
-            boolean isFail = cleanTitle.contains(XSK.KW_ERROR) || cleanTitle.contains(XSK.KW_BLAD_PL);
+            boolean isSuccess = cleanTitle.contains(ClientConstants.KW_ZAKUPION) || cleanTitle.contains(ClientConstants.KW_SUKCES);
+            boolean isFail = cleanTitle.contains(ClientConstants.KW_ERROR) || cleanTitle.contains(ClientConstants.KW_BLAD_PL);
             handleConfirmScreen(handler, syncId, currentTitle, now, confirmKeywords, isSuccess, isFail);
         }
     }
@@ -833,7 +833,7 @@ public final class AutoMarketController {
                 sortingConfirmed = true;
                 BKClientInit.getInstance().getNotificationManager().addNotificationOther(
                         dev.bkclient.systems.notifications.NotificationType.SUCCESS,
-                        XSK.LABEL_AUTO_MARKET, "\u00A7aWykryto sortowanie: " + XSK.KW_NAJNOWSZE);
+                        ClientConstants.LABEL_AUTO_MARKET, "\u00A7aWykryto sortowanie: " + ClientConstants.KW_NAJNOWSZE);
                 // Scanner may need to be started now that sorting is confirmed
                 if (mc.player != null && mc.player.currentScreenHandler != null) {
                     startThreadedScanner(mc.player.currentScreenHandler);
@@ -1028,38 +1028,38 @@ public final class AutoMarketController {
         String normalizedTitle = BK_RE_0.matcher(java.text.Normalizer.normalize(cleanTextLower, java.text.Normalizer.Form.NFD)).replaceAll("");
         normalizedTitle = replacePolishLetters(normalizedTitle);
 
-        boolean looksLikePurchaseResult = cleanTextLower.contains(XSK.KW_KUPILES1)
-                || cleanTextLower.contains(XSK.KW_KUPILES2)
-                || cleanTextLower.contains(XSK.KW_POMYSLNIE1)
-                || cleanTextLower.contains(XSK.KW_POMYSLNIE2)
-                || cleanTextLower.contains(XSK.KW_ZAKUPIONO1)
-                || cleanTextLower.contains(XSK.KW_ZAKUPIONO2)
-                || cleanTextLower.contains(XSK.KW_BOUGHT)
-                || cleanTextLower.contains(XSK.KW_SUKCES)
+        boolean looksLikePurchaseResult = cleanTextLower.contains(ClientConstants.KW_KUPILES1)
+                || cleanTextLower.contains(ClientConstants.KW_KUPILES2)
+                || cleanTextLower.contains(ClientConstants.KW_POMYSLNIE1)
+                || cleanTextLower.contains(ClientConstants.KW_POMYSLNIE2)
+                || cleanTextLower.contains(ClientConstants.KW_ZAKUPIONO1)
+                || cleanTextLower.contains(ClientConstants.KW_ZAKUPIONO2)
+                || cleanTextLower.contains(ClientConstants.KW_BOUGHT)
+                || cleanTextLower.contains(ClientConstants.KW_SUKCES)
                 || cleanTextLower.contains("kupi\u0142e\u015B przedmiot")
                 || cleanTextLower.contains("kupiles przedmiot")
                 || normalizedTitle.contains("kupiles przedmiot za");
 
-        boolean looksLikePurchaseFailure = cleanTextLower.contains(XSK.KW_PRAWDOPODOBNIE)
-                || cleanTextLower.contains(XSK.KW_NIEDOSTEPNY1)
-                || cleanTextLower.contains(XSK.KW_NIEDOSTEPNY2)
-                || cleanTextLower.contains(XSK.KW_SPRZEDANY1)
-                || cleanTextLower.contains(XSK.KW_SPRZEDANY2)
-                || cleanTextLower.contains(XSK.KW_SPRZEDANY3)
-                || cleanTextLower.contains(XSK.KW_KUPIONY1)
-                || cleanTextLower.contains(XSK.KW_KUPIONY2)
-                || cleanTextLower.contains(XSK.KW_ALREADY_SOLD)
-                || cleanTextLower.contains(XSK.KW_ALREADY_BOUGHT)
-                || cleanTextLower.contains(XSK.KW_USUNIETO)
-                || cleanTextLower.contains(XSK.KW_EXPIRED);
+        boolean looksLikePurchaseFailure = cleanTextLower.contains(ClientConstants.KW_PRAWDOPODOBNIE)
+                || cleanTextLower.contains(ClientConstants.KW_NIEDOSTEPNY1)
+                || cleanTextLower.contains(ClientConstants.KW_NIEDOSTEPNY2)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANY1)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANY2)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANY3)
+                || cleanTextLower.contains(ClientConstants.KW_KUPIONY1)
+                || cleanTextLower.contains(ClientConstants.KW_KUPIONY2)
+                || cleanTextLower.contains(ClientConstants.KW_ALREADY_SOLD)
+                || cleanTextLower.contains(ClientConstants.KW_ALREADY_BOUGHT)
+                || cleanTextLower.contains(ClientConstants.KW_USUNIETO)
+                || cleanTextLower.contains(ClientConstants.KW_EXPIRED);
 
-        boolean looksLikeNoMoney = cleanTextLower.contains(XSK.KW_BRAK1)
-                || cleanTextLower.contains(XSK.KW_BRAK2)
-                || cleanTextLower.contains(XSK.KW_BRAK3)
-                || cleanTextLower.contains(XSK.KW_BRAK4)
-                || cleanTextLower.contains(XSK.KW_BRAK5)
-                || cleanTextLower.contains(XSK.KW_NO_MONEY)
-                || cleanTextLower.contains(XSK.KW_INSUF);
+        boolean looksLikeNoMoney = cleanTextLower.contains(ClientConstants.KW_BRAK1)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK2)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK3)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK4)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK5)
+                || cleanTextLower.contains(ClientConstants.KW_NO_MONEY)
+                || cleanTextLower.contains(ClientConstants.KW_INSUF);
 
         if (looksLikePurchaseResult || looksLikePurchaseFailure || looksLikeNoMoney) {
             onChatMessage(Text.literal("\u00A7a" + cleanTextLower), true);
@@ -1087,7 +1087,7 @@ public final class AutoMarketController {
         long now = System.currentTimeMillis();
 
         // Ignore bot messages
-        if (rawText.contains("[" + XSK.CHAT_PREFIX + "]") || rawText.contains(XSK.CHAT_PREFIX))
+        if (rawText.contains("[" + ClientConstants.CHAT_PREFIX + "]") || rawText.contains(ClientConstants.CHAT_PREFIX))
             return;
 
         // Delegate sell-related messages to AutoSellController
@@ -1107,44 +1107,44 @@ public final class AutoMarketController {
             return;
 
         // Success detection
-        boolean hasSuccess = minestarDispatch ? minestarEvent != null : (cleanTextLower.contains(XSK.KW_KUPILES1)
-                || cleanTextLower.contains(XSK.KW_KUPILES2)
-                || cleanTextLower.contains(XSK.KW_POMYSLNIE1)
-                || cleanTextLower.contains(XSK.KW_POMYSLNIE2)
-                || cleanTextLower.contains(XSK.KW_ZAKUPIONO1)
-                || cleanTextLower.contains(XSK.KW_SUKCES)
-                || cleanTextLower.contains(XSK.KW_ZAKUPIONO2)
-                || cleanTextLower.contains(XSK.KW_BOUGHT)
-                || cleanTextLower.contains(XSK.KW_GRATULACJ));
+        boolean hasSuccess = minestarDispatch ? minestarEvent != null : (cleanTextLower.contains(ClientConstants.KW_KUPILES1)
+                || cleanTextLower.contains(ClientConstants.KW_KUPILES2)
+                || cleanTextLower.contains(ClientConstants.KW_POMYSLNIE1)
+                || cleanTextLower.contains(ClientConstants.KW_POMYSLNIE2)
+                || cleanTextLower.contains(ClientConstants.KW_ZAKUPIONO1)
+                || cleanTextLower.contains(ClientConstants.KW_SUKCES)
+                || cleanTextLower.contains(ClientConstants.KW_ZAKUPIONO2)
+                || cleanTextLower.contains(ClientConstants.KW_BOUGHT)
+                || cleanTextLower.contains(ClientConstants.KW_GRATULACJ));
 
         // Error detection
-        boolean hasError = cleanTextLower.contains(XSK.KW_PRAWDOPODOBNIE)
-                || cleanTextLower.contains(XSK.KW_NIEDOSTEPNY1)
-                || cleanTextLower.contains(XSK.KW_NIEDOSTEPNY2)
-                || cleanTextLower.contains(XSK.KW_SPRZEDANY1)
-                || cleanTextLower.contains(XSK.KW_SPRZEDANY2)
-                || cleanTextLower.contains(XSK.KW_SPRZEDANY3)
-                || cleanTextLower.contains(XSK.KW_KUPIONY1)
-                || cleanTextLower.contains(XSK.KW_KUPIONY2)
-                || cleanTextLower.contains(XSK.KW_ALREADY_SOLD)
-                || cleanTextLower.contains(XSK.KW_ALREADY_BOUGHT)
-                || cleanTextLower.contains(XSK.KW_PRODUKT1)
-                || cleanTextLower.contains(XSK.KW_PRODUKT2)
-                || cleanTextLower.contains(XSK.KW_PRZEDMIOT1)
-                || cleanTextLower.contains(XSK.KW_PRZEDMIOT2)
-                || cleanTextLower.contains(XSK.KW_USUNIETO)
-                || cleanTextLower.contains(XSK.KW_WYGASL1)
-                || cleanTextLower.contains(XSK.KW_WYGASL2)
-                || cleanTextLower.contains(XSK.KW_EXPIRED);
+        boolean hasError = cleanTextLower.contains(ClientConstants.KW_PRAWDOPODOBNIE)
+                || cleanTextLower.contains(ClientConstants.KW_NIEDOSTEPNY1)
+                || cleanTextLower.contains(ClientConstants.KW_NIEDOSTEPNY2)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANY1)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANY2)
+                || cleanTextLower.contains(ClientConstants.KW_SPRZEDANY3)
+                || cleanTextLower.contains(ClientConstants.KW_KUPIONY1)
+                || cleanTextLower.contains(ClientConstants.KW_KUPIONY2)
+                || cleanTextLower.contains(ClientConstants.KW_ALREADY_SOLD)
+                || cleanTextLower.contains(ClientConstants.KW_ALREADY_BOUGHT)
+                || cleanTextLower.contains(ClientConstants.KW_PRODUKT1)
+                || cleanTextLower.contains(ClientConstants.KW_PRODUKT2)
+                || cleanTextLower.contains(ClientConstants.KW_PRZEDMIOT1)
+                || cleanTextLower.contains(ClientConstants.KW_PRZEDMIOT2)
+                || cleanTextLower.contains(ClientConstants.KW_USUNIETO)
+                || cleanTextLower.contains(ClientConstants.KW_WYGASL1)
+                || cleanTextLower.contains(ClientConstants.KW_WYGASL2)
+                || cleanTextLower.contains(ClientConstants.KW_EXPIRED);
 
         // No money detection
-        boolean hasNoMoney = cleanTextLower.contains(XSK.KW_BRAK1)
-                || cleanTextLower.contains(XSK.KW_BRAK2)
-                || cleanTextLower.contains(XSK.KW_BRAK3)
-                || cleanTextLower.contains(XSK.KW_BRAK4)
-                || cleanTextLower.contains(XSK.KW_BRAK5)
-                || cleanTextLower.contains(XSK.KW_NO_MONEY)
-                || cleanTextLower.contains(XSK.KW_INSUF);
+        boolean hasNoMoney = cleanTextLower.contains(ClientConstants.KW_BRAK1)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK2)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK3)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK4)
+                || cleanTextLower.contains(ClientConstants.KW_BRAK5)
+                || cleanTextLower.contains(ClientConstants.KW_NO_MONEY)
+                || cleanTextLower.contains(ClientConstants.KW_INSUF);
 
         if (minestarDispatch && hasSuccess) {
             hasError = false;
@@ -1258,7 +1258,7 @@ public final class AutoMarketController {
             String boughtMsg = Local_translate_bought(lastMatchedItemName, lastMatchedPrice);
             sendFeedback("\u00A7a" + boughtMsg);
             BKClientInit.getInstance().getNotificationManager().addNotificationOther(
-                    NotificationType.SUCCESS, XSK.LABEL_AUTO_MARKET, boughtMsg);
+                    NotificationType.SUCCESS, ClientConstants.LABEL_AUTO_MARKET, boughtMsg);
 
             if (webhookUrl != null && !webhookUrl.isEmpty()) {
                 String serverAddr = mc.getCurrentServerEntry() != null
@@ -1844,10 +1844,10 @@ public final class AutoMarketController {
 
             boolean isConfirm = (confirmItemName != null && !confirmItemName.isEmpty())
                     ? name.contains(confirmItemName.toLowerCase())
-                    : (name.contains(XSK.KW_POTWIERDZ1) || name.contains(XSK.KW_POTWIERDZ2)
-                            || name.contains(XSK.KW_CONFIRM) || name.contains(XSK.KW_ZAKUP)
-                            || name.contains(XSK.KW_POTWIERDZANIE) || name.contains(XSK.KW_NA_PEWNO)
-                            || name.contains(XSK.KW_SURE)
+                    : (name.contains(ClientConstants.KW_POTWIERDZ1) || name.contains(ClientConstants.KW_POTWIERDZ2)
+                            || name.contains(ClientConstants.KW_CONFIRM) || name.contains(ClientConstants.KW_ZAKUP)
+                            || name.contains(ClientConstants.KW_POTWIERDZANIE) || name.contains(ClientConstants.KW_NA_PEWNO)
+                            || name.contains(ClientConstants.KW_SURE)
                             || (title.contains("zakup") && name.contains("produkt")));
 
             if (isConfirm)
@@ -1868,7 +1868,7 @@ public final class AutoMarketController {
 
         for (Text line : loreComponent.lines()) {
             String text = line.getString().toLowerCase();
-            if (!text.contains(kw) && !text.contains(XSK.SORT_KW_NOWSZE))
+            if (!text.contains(kw) && !text.contains(ClientConstants.SORT_KW_NOWSZE))
                 continue;
 
             var style = line.getStyle();
@@ -1884,7 +1884,7 @@ public final class AutoMarketController {
             for (Text sibling : line.getSiblings()) {
                 String sibText = sibling.getString().toLowerCase();
                 var sibStyle = sibling.getStyle();
-                if ((sibText.contains(kw) || sibText.contains(XSK.SORT_KW_NOWSZE)
+                if ((sibText.contains(kw) || sibText.contains(ClientConstants.SORT_KW_NOWSZE)
                         || sibText.contains("\u27A4") || sibText.contains("\u00BB"))
                         && sibStyle != null && sibStyle.getColor() != null) {
                     String sibColor = sibStyle.getColor().toString().toLowerCase();

@@ -32,7 +32,7 @@ import dev.bkclient.systems.setting.settings.StringSetting;
 import dev.bkclient.systems.setting.settings.rynek.PriceEntry;
 import dev.bkclient.ui.menu.rynek.QuickAddScreen;
 import dev.bkclient.systems.event.impl.window.KeyPressEvent;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import dev.bkclient.utility.inventory.ItemStackExtractor;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.network.packet.Packet;
@@ -843,13 +843,13 @@ public class AutoMarket
         autoMarketController.setIgnoreMarketTitle(mineStar || rapy);
 
         String address = (mc.getCurrentServerEntry() != null) ? mc.getCurrentServerEntry().address.toLowerCase() : "";
-        boolean isAn = address.contains(XSK.ANARCHIA_GG) || address.contains(XSK.ANARCHIA_PL);
+        boolean isAn = address.contains(ClientConstants.ANARCHIA_GG) || address.contains(ClientConstants.ANARCHIA_PL);
 
         if (isAn && !rapy && !mineStar) {
             autoMarketController.setIsAnarchia(true);
             autoMarketController.setSortingSlot(53); // Forced for Anarchia
             autoMarketController.setNextPageSlot(51); // Forced avoid conflict with sort
-            autoMarketController.setSortingKeyword(XSK.SORT_KW_NOWSZE);
+            autoMarketController.setSortingKeyword(ClientConstants.SORT_KW_NOWSZE);
             autoMarketController.setAggressiveMode(true);
         } else {
             autoMarketController.setIsAnarchia(false);

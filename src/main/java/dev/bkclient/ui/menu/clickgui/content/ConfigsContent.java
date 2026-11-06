@@ -20,7 +20,7 @@ import dev.bkclient.utility.game.cursor.CursorUtility;
 import dev.bkclient.ui.menu.clickgui.content.config.ConfigEntryCard;
 import dev.bkclient.utility.colors.Colors;
 import dev.bkclient.utility.game.CloudConfigUtility;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import dev.bkclient.utility.gui.ScrollHandler;
 import dev.bkclient.utility.interfaces.IMinecraft;
 import dev.bkclient.utility.render.ScissorUtility;
@@ -56,7 +56,6 @@ public final class ConfigsContent implements IMinecraft {
    private final ScrollHandler globalScroll = new ScrollHandler();
    private final ScrollHandler marketScroll = new ScrollHandler();
    private final TextField librarySearch = new TextField(Fonts.MEDIUM.getFont(6.5F));
-   private final dev.bkclient.ui.menu.clickgui.content.config.LibraryAirDrop airDrop = new dev.bkclient.ui.menu.clickgui.content.config.LibraryAirDrop();
    private boolean profiles;
    private float libraryX, libraryY;
 
@@ -102,15 +101,11 @@ public final class ConfigsContent implements IMinecraft {
       }
       context.drawRoundedRect(x + width - 170, libraryY, 160, 21, BorderRadius.all(6), Colors.getTextColor().withAlpha(10));
       librarySearch.set(x + width - 163, libraryY + 4, 146, 13); librarySearch.setTextColor(Colors.getTextColor()); librarySearch.render(context);
-      if (dev.bkclient.systems.DeferredFeatures.AIRDROP) {
-         context.drawRoundedRect(libraryX + 136, libraryY, 65, 21, BorderRadius.all(6), Colors.getTextColor().withAlpha(12));
-         context.drawCenteredText(Fonts.MEDIUM.getFont(7), "AirDrop", libraryX + 168.5F, libraryY + 7, Colors.getAccent());
-      }
+
       float panelY = y + 53;
       float panelHeight = height - 63;
-      float panelWidth = width - PADDING * 2 - (airDrop.isOpen() ? 171 : 0);
+      float panelWidth = width - PADDING * 2;
       renderPanel(context, !profiles, libraryX, panelY, panelWidth, panelHeight, alpha);
-      if (airDrop.isOpen()) airDrop.render(context, x + width - 172, y + 31, 162, height - 41, alpha);
 
       for (ConfigEntryCard card : this.globalCards) if (card.shouldRenderMenu()) card.renderMenu(context, alpha);
       for (ConfigEntryCard card : this.marketCards) if (card.shouldRenderMenu()) card.renderMenu(context, alpha);
@@ -234,7 +229,6 @@ public final class ConfigsContent implements IMinecraft {
          if (existing != null) {
             existing.setActive(config.getFileName().equalsIgnoreCase(active));
             existing.setModified(config.getFile().lastModified());
-            existing.setOnAirDrop(dev.bkclient.systems.DeferredFeatures.AIRDROP ? () -> openAirDrop(config) : null);
             this.globalCards.add(existing);
             continue;
          }
@@ -243,7 +237,6 @@ public final class ConfigsContent implements IMinecraft {
             () -> loadGlobal(config), () -> beginRenameGlobal(config), () -> loadGlobal(config),
             () -> saveGlobal(config), () -> shareGlobal(config, false), () -> shareGlobal(config, true),
             () -> deleteGlobal(config));
-         card.setOnAirDrop(dev.bkclient.systems.DeferredFeatures.AIRDROP ? () -> openAirDrop(config) : null);
          if (config.getDisplayName().equals(open)) card.setMenuOpen(true);
          this.globalCards.add(card);
       }
@@ -283,20 +276,10 @@ public final class ConfigsContent implements IMinecraft {
       }
    }
 
-   private void openAirDrop(ConfigFile config) {
-      closeOtherMenus(null);
-      globalField.setFocused(false); marketField.setFocused(false); librarySearch.setFocused(false);
-      airDrop.open(config);
-   }
-
    public boolean handleClick(double mouseX, double mouseY, MouseButton button) {
-      if (dev.bkclient.systems.DeferredFeatures.AIRDROP && button == MouseButton.LEFT && hit(mouseX, mouseY, libraryX + 136, libraryY, 65, 21)) {
-         closeOtherMenus(null); globalField.setFocused(false); marketField.setFocused(false); librarySearch.setFocused(false);
-         airDrop.openReceive(); return true;
-      }
-      if (airDrop.click(mouseX, mouseY, button)) { globalField.setFocused(false); marketField.setFocused(false); librarySearch.setFocused(false); return true; }
+
       if (button == MouseButton.LEFT && hit(mouseX, mouseY, libraryX, libraryY, 129, 21)) {
-         profiles = mouseX >= libraryX + 67; closeOtherMenus(null); airDrop.close();
+         profiles = mouseX >= libraryX + 67; closeOtherMenus(null);
          globalField.setFocused(false); marketField.setFocused(false); librarySearch.clear(); librarySearch.setFocused(false);
          globalCards.forEach(ConfigEntryCard::beginFrame); marketCards.forEach(ConfigEntryCard::beginFrame);
          globalScroll.reset(); marketScroll.reset(); return true;
@@ -339,7 +322,7 @@ public final class ConfigsContent implements IMinecraft {
    }
 
    public void handleRelease() {
-      airDrop.release(); librarySearch.onMouseReleased(0, 0, MouseButton.LEFT);
+      librarySearch.onMouseReleased(0, 0, MouseButton.LEFT);
       for (ConfigEntryCard card : new ArrayList<>(this.globalCards)) card.handleRelease();
       for (ConfigEntryCard card : new ArrayList<>(this.marketCards)) card.handleRelease();
       this.globalField.onMouseReleased(0.0, 0.0, MouseButton.LEFT);
@@ -347,7 +330,6 @@ public final class ConfigsContent implements IMinecraft {
    }
 
    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-      if (airDrop.key(keyCode, scanCode, modifiers)) return true;
       if (librarySearch.isFocused()) { librarySearch.onKeyPressed(keyCode, scanCode, modifiers); globalScroll.reset(); marketScroll.reset(); closeOtherMenus(null); return true; }
       if (!this.globalField.isFocused() && !this.marketField.isFocused()) return false;
       if (keyCode == 256) {
@@ -366,7 +348,6 @@ public final class ConfigsContent implements IMinecraft {
    }
 
    public boolean charTyped(char chr, int modifiers) {
-      if (airDrop.character(chr, modifiers)) return true;
       if (librarySearch.isFocused()) { globalScroll.reset(); marketScroll.reset(); closeOtherMenus(null); return librarySearch.charTyped(chr, modifiers); }
       if (this.globalField.isFocused()) return this.globalField.charTyped(chr, modifiers);
       if (this.marketField.isFocused()) return this.marketField.charTyped(chr, modifiers);
@@ -374,7 +355,6 @@ public final class ConfigsContent implements IMinecraft {
    }
 
    public boolean onScroll(double mouseX, double mouseY, double amount) {
-      if (airDrop.scroll(mouseX, mouseY, amount)) return true;
       if (hit(mouseX, mouseY, this.globalListX, this.globalListY, this.globalListW, this.globalListH)) {
          closeOtherMenus(null); this.globalScroll.scroll(amount); return true;
       }
@@ -419,7 +399,7 @@ public final class ConfigsContent implements IMinecraft {
                   notifyError("Configs", "Config upload failed.");
                   return;
                }
-               String code = XSK.CLOUD_PREFIX + result.key;
+               String code = ClientConstants.CLOUD_PREFIX + result.key;
                if (privateMode && result.deletionKey != null) code += result.deletionKey;
                mc.keyboard.setClipboard(code);
                notifySuccess("Configs", privateMode ? "Private code copied." : "Public code copied.");

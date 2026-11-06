@@ -271,7 +271,7 @@ public class ConfigFile implements IMinecraft {
 
    private static boolean isSessionOnly(Module module) {
       String normalized = module.getName().replace(" ", "").toLowerCase(java.util.Locale.ROOT);
-      return normalized.equals("airdrop") || normalized.equals("panic") || normalized.equals("automarket")
+      return normalized.equals("panic") || normalized.equals("automarket")
          || normalized.equals("minehelper")
          || normalized.equals("chatspammer");
    }

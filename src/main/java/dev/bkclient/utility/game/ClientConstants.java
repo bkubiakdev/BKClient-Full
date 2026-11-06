@@ -4,8 +4,8 @@ package dev.bkclient.utility.game;
  * Obfuscated string constants.
  * Encoded values are decoded at runtime via XS.d().
  */
-public final class XSK {
-    private XSK() {}
+public final class ClientConstants {
+    private ClientConstants() {}
 
     public static final String POST_URL = "https://changeme.net/mods/api/cfg/post";
     public static final String BASE_URL = "https://changeme.net/mods/api/cfg/";

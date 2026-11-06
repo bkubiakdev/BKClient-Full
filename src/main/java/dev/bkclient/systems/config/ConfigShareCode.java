@@ -1,18 +1,18 @@
 package dev.bkclient.systems.config;
 
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 
 /** Compatible with ClickGUI public and single-use BK sharing codes. */
 public record ConfigShareCode(String key, String deletionKey) {
     public static ConfigShareCode parse(String input) {
         if (input == null) throw new IllegalArgumentException("Paste a BK code first.");
         String raw = input.trim();
-        if (raw.startsWith(XSK.CLOUD_PREFIX)) raw = raw.substring(XSK.CLOUD_PREFIX.length());
+        if (raw.startsWith(ClientConstants.CLOUD_PREFIX)) raw = raw.substring(ClientConstants.CLOUD_PREFIX.length());
         String key = raw, deletionKey = null;
-        int separator = raw.indexOf(XSK.BURN_SEP);
+        int separator = raw.indexOf(ClientConstants.BURN_SEP);
         if (separator >= 0) {
             key = raw.substring(0, separator);
-            deletionKey = raw.substring(separator + XSK.BURN_SEP.length());
+            deletionKey = raw.substring(separator + ClientConstants.BURN_SEP.length());
         } else if (raw.length() > 12) {
             key = raw.substring(0, 12);
             deletionKey = raw.substring(12);
@@ -23,6 +23,6 @@ public record ConfigShareCode(String key, String deletionKey) {
     }
 
     public String formatted() {
-        return XSK.CLOUD_PREFIX + key + (deletionKey == null ? "" : deletionKey);
+        return ClientConstants.CLOUD_PREFIX + key + (deletionKey == null ? "" : deletionKey);
     }
 }

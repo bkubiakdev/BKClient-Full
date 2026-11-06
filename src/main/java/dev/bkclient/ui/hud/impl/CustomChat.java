@@ -14,7 +14,6 @@ import dev.bkclient.systems.event.EventListener;
 import dev.bkclient.systems.event.impl.window.MouseScrollEvent;
 import dev.bkclient.systems.emoji.EmojiManager;
 import dev.bkclient.systems.emoji.EmojiTextureLoader;
-import dev.bkclient.systems.supabase.SupabaseService;
 import dev.bkclient.systems.localization.Localizator;
 import dev.bkclient.systems.modules.modules.visuals.Interface;
 import dev.bkclient.ui.components.textfield.TextField;
@@ -34,7 +33,6 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.VertexFormats;
-import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import net.minecraft.util.StringHelper;
 import org.joml.Matrix4f;
@@ -167,22 +165,6 @@ public class CustomChat extends HudElement {
         this.height = 150.0F;
         BKClientInit.getInstance().getEventManager().subscribe(this);
         DirectMessageChat.initialize();
-    }
-
-    private void handleAirdropClick(String cmd) {
-        String[] parts = cmd.split(" ");
-        if (parts.length >= 4) {
-            String action = parts[2];
-            String id = parts[3];
-            if (action.equals("accept")) {
-                if (parts.length >= 5) {
-                    String configData = parts[4];
-                    SupabaseService.getInstance().acceptAirdrop(id, configData);
-                }
-            } else if (action.equals("reject")) {
-                SupabaseService.getInstance().rejectAirdrop(id);
-            }
-        }
     }
 
     private void ensureSearchField() {
@@ -454,11 +436,7 @@ public class CustomChat extends HudElement {
         if (button == MouseButton.LEFT && mouseY >= this.y && mouseY <= this.y + this.height) {
             for (ClickableRegion region : clickableRegions) {
                 if (region.contains((float) mouseX, (float) mouseY)) {
-                    ClickEvent action = region.style.getClickEvent();
-                    if (action != null && action.getAction() == ClickEvent.Action.RUN_COMMAND
-                            && action.getValue().replaceFirst("^/", "").startsWith("bkclient airdrop ")) {
-                        handleAirdropClick(action.getValue().replaceFirst("^/", ""));
-                    } else mc.currentScreen.handleTextClick(region.style);
+                    mc.currentScreen.handleTextClick(region.style);
                     return;
                 }
             }

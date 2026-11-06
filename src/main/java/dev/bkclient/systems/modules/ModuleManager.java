@@ -308,7 +308,6 @@ public class ModuleManager {
       this.register(new TestModule());
       this.register(new dev.bkclient.systems.modules.modules.visuals.LarpAna());
       this.register(new dev.bkclient.systems.modules.modules.other.PerformanceProfiler());
-      // AirDrop is controlled exclusively from Configs; receiving is never a saved module toggle.
       this.register(new TinyTask());
    }
 

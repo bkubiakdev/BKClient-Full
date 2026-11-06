@@ -17,7 +17,7 @@ import dev.bkclient.utility.render.DrawUtility;
 import dev.bkclient.utility.render.PlayerHeadSkins;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 
-/** AirDrop-style incoming-request card. Preview actions never send server commands. */
+/** Incoming friend request card. Preview actions never send server commands. */
 public final class FriendRequestNotification implements IMinecraft {
     private static FriendRequestNotification instance;
     private String sender = "";

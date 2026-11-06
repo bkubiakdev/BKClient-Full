@@ -8,7 +8,7 @@ import dev.bkclient.systems.file.SafeJsonFile;
 import dev.bkclient.systems.localization.Localizator;
 import dev.bkclient.systems.modules.modules.bkmods.AutoMarket;
 import dev.bkclient.systems.setting.Setting;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import dev.bkclient.utility.game.server.ServerUtility;
 
 import java.io.File;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AutoMarketConfigManager {
-    private static final File DIRECTORY = new File(FileManager.DIRECTORY, XSK.DIR_NAME);
+    private static final File DIRECTORY = new File(FileManager.DIRECTORY, ClientConstants.DIR_NAME);
     private static final int CLOUD_KEY_LENGTH = 12;
     private final List<ConfigInfo> configs = new ArrayList<>();
 
@@ -100,10 +100,10 @@ public class AutoMarketConfigManager {
     private void patchConfigName(File file, String name) {
         try {
             JsonObject json = SafeJsonFile.read(file.toPath(), AutoMarketConfigManager::validProfile);
-            if (json.has(XSK.JSON_NAME) && name.equals(json.get(XSK.JSON_NAME).getAsString())) {
+            if (json.has(ClientConstants.JSON_NAME) && name.equals(json.get(ClientConstants.JSON_NAME).getAsString())) {
                 return;
             }
-            json.addProperty(XSK.JSON_NAME, name);
+            json.addProperty(ClientConstants.JSON_NAME, name);
             SafeJsonFile.write(file.toPath(), json, AutoMarketConfigManager::validProfile);
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,7 +130,7 @@ public class AutoMarketConfigManager {
 
     private static String sanitizeServer(String value) {
         if (value == null || value.isBlank() || value.replace("\u00A7", "").isBlank()) {
-            return XSK.DEFAULT_SERVER;
+            return ClientConstants.DEFAULT_SERVER;
         }
         return value;
     }
@@ -152,14 +152,14 @@ public class AutoMarketConfigManager {
                 try {
                     JsonObject json = SafeJsonFile.read(file.toPath(), AutoMarketConfigManager::validProfile);
                     String name = filename;
-                    long date = json.has(XSK.JSON_DATE) ? json.get(XSK.JSON_DATE).getAsLong() : 0;
-                    String server = json.has(XSK.JSON_SERVER) ? sanitizeServer(json.get(XSK.JSON_SERVER).getAsString())
-                            : XSK.DEFAULT_SERVER;
-                    String favicon = json.has(XSK.JSON_FAVICON) ? json.get(XSK.JSON_FAVICON).getAsString() : null;
+                    long date = json.has(ClientConstants.JSON_DATE) ? json.get(ClientConstants.JSON_DATE).getAsLong() : 0;
+                    String server = json.has(ClientConstants.JSON_SERVER) ? sanitizeServer(json.get(ClientConstants.JSON_SERVER).getAsString())
+                            : ClientConstants.DEFAULT_SERVER;
+                    String favicon = json.has(ClientConstants.JSON_FAVICON) ? json.get(ClientConstants.JSON_FAVICON).getAsString() : null;
                     configs.add(new ConfigInfo(name, filename, date, server, favicon));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    configs.add(new ConfigInfo(filename, filename, 0, XSK.DEFAULT_SERVER, null));
+                    configs.add(new ConfigInfo(filename, filename, 0, ClientConstants.DEFAULT_SERVER, null));
                 }
             }
         }
@@ -178,22 +178,22 @@ public class AutoMarketConfigManager {
             BKClientInit.LOGGER.error("Refusing to overwrite unreadable market profile {}", finalName, error);
             return;
         }
-        json.addProperty(XSK.JSON_NAME, finalName);
-        json.addProperty(XSK.JSON_DATE, System.currentTimeMillis());
-        String currentServer = ServerUtility.getCurrentServerAddress(XSK.DEFAULT_SERVER);
-        if (!currentServer.equals(XSK.DEFAULT_SERVER)) {
-            json.addProperty(XSK.JSON_SERVER, currentServer);
+        json.addProperty(ClientConstants.JSON_NAME, finalName);
+        json.addProperty(ClientConstants.JSON_DATE, System.currentTimeMillis());
+        String currentServer = ServerUtility.getCurrentServerAddress(ClientConstants.DEFAULT_SERVER);
+        if (!currentServer.equals(ClientConstants.DEFAULT_SERVER)) {
+            json.addProperty(ClientConstants.JSON_SERVER, currentServer);
             String favicon = ServerUtility.getCurrentServerFaviconBase64();
             if (favicon != null) {
-                json.addProperty(XSK.JSON_FAVICON, favicon);
+                json.addProperty(ClientConstants.JSON_FAVICON, favicon);
             }
         }
 
-        JsonObject settings = json.has(XSK.JSON_SETTINGS) ? json.getAsJsonObject(XSK.JSON_SETTINGS).deepCopy() : new JsonObject();
+        JsonObject settings = json.has(ClientConstants.JSON_SETTINGS) ? json.getAsJsonObject(ClientConstants.JSON_SETTINGS).deepCopy() : new JsonObject();
         for (Setting setting : autoMarket.getMarketSettings()) {
             settings.add(setting.getName(), setting.save());
         }
-        json.add(XSK.JSON_SETTINGS, settings);
+        json.add(ClientConstants.JSON_SETTINGS, settings);
 
         if (!DIRECTORY.exists())
             DIRECTORY.mkdirs();
@@ -216,14 +216,14 @@ public class AutoMarketConfigManager {
             autoMarket.autoJump.setEnabled(false);
             autoMarket.autoSellEnabled.setEnabled(false);
             autoMarket.showHistory.setEnabled(true);
-            autoMarket.sellCommand.text(XSK.DEFAULT_SELL_CMD);
-            autoMarket.marketCommand.text(XSK.DEFAULT_MARKET_CMD);
+            autoMarket.sellCommand.text(ClientConstants.DEFAULT_SELL_CMD);
+            autoMarket.marketCommand.text(ClientConstants.DEFAULT_MARKET_CMD);
             autoMarket.customMarketTitle.text("");
             autoMarket.confirmSlotSetting.setCurrentValue(11.0f);
             autoMarket.sortingSlotSetting.setCurrentValue(53.0f);
             autoMarket.refreshSlotSetting.setCurrentValue(0.0f);
             autoMarket.nextPageSlotSetting.setCurrentValue(26.0f);
-            autoMarket.sortingKeyword.text(XSK.DEFAULT_SORT_KW);
+            autoMarket.sortingKeyword.text(ClientConstants.DEFAULT_SORT_KW);
             autoMarket.confirmItemName.text("");
             autoMarket.loreRegex.text("(?i).*Koszt.*?([\\d.,]+(?:mld|[km])?).*");
             autoMarket.loreSellerRegex.text("");
@@ -235,7 +235,7 @@ public class AutoMarketConfigManager {
     }
 
     public static boolean validProfile(JsonObject json) {
-        return json.has(XSK.JSON_SETTINGS) && json.get(XSK.JSON_SETTINGS).isJsonObject();
+        return json.has(ClientConstants.JSON_SETTINGS) && json.get(ClientConstants.JSON_SETTINGS).isJsonObject();
     }
 
     public void load(String name) { loadProfile(name); }
@@ -250,7 +250,7 @@ public class AutoMarketConfigManager {
 
         try {
             JsonObject json = SafeJsonFile.read(file.toPath(), AutoMarketConfigManager::validProfile);
-            JsonObject settings = json.getAsJsonObject(XSK.JSON_SETTINGS);
+            JsonObject settings = json.getAsJsonObject(ClientConstants.JSON_SETTINGS);
 
             if (settings != null) {
                 boolean previousLoading = autoMarket.isLoading();
@@ -345,7 +345,7 @@ public class AutoMarketConfigManager {
             return false;
         try {
             JsonObject json = SafeJsonFile.read(oldFile.toPath(), AutoMarketConfigManager::validProfile);
-            json.addProperty(XSK.JSON_NAME, trimmedName);
+            json.addProperty(ClientConstants.JSON_NAME, trimmedName);
             SafeJsonFile.write(newFile.toPath(), json, AutoMarketConfigManager::validProfile);
             java.nio.file.Files.delete(oldFile.toPath());
             java.nio.file.Files.deleteIfExists(SafeJsonFile.backup(oldFile.toPath()));
@@ -386,7 +386,7 @@ public class AutoMarketConfigManager {
                     "Auto-Market", Localizator.translate("modules.notifications.auto_market.config_sharing"));
             dev.bkclient.utility.game.CloudConfigUtility.uploadConfig(finalName, content).thenAccept(result -> {
                 if (result != null) {
-                    String code = XSK.CLOUD_PREFIX + result.key;
+                    String code = ClientConstants.CLOUD_PREFIX + result.key;
                     if (privateMode && result.deletionKey != null) {
                         code += result.deletionKey;
                     }

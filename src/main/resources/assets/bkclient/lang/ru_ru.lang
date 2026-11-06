@@ -3120,7 +3120,6 @@ modules.descriptions.aurasprint=Keeps you sprinting
 modules.descriptions.auratpssync=Matches attacks to server speed
 modules.descriptions.nukeraura=Records and replays aim movement
 modules.descriptions.triggerbot=Attacks targets under your aim
-modules.descriptions.airdrop=Shares configs with other players
 modules.descriptions.chat_spammer=Repeats a chosen chat message
 modules.descriptions.profiler=Records performance reports
 modules.descriptions.streamer_mode=Hides names and private details

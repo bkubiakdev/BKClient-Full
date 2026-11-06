@@ -19,7 +19,7 @@ public final class ConfigImport {
         @Override public JsonObject data() { return data.deepCopy(); }
     }
     public static AutoMarket market() { return BKClientInit.INSTANCE.getModuleManager().getModule(AutoMarket.class); }
-    public static Path directory(Kind kind) { return FileManager.DIRECTORY.toPath().resolve(kind==Kind.CLIENT?"configs":XSK.DIR_NAME); }
+    public static Path directory(Kind kind) { return FileManager.DIRECTORY.toPath().resolve(kind==Kind.CLIENT?"configs":ClientConstants.DIR_NAME); }
     public static String clean(Kind kind,String name) {
         if(name==null || name.isBlank())throw new IllegalArgumentException("Enter a configuration name.");
         return kind==Kind.CLIENT?ConfigManager.sanitizeConfigName(name):AutoMarketConfigManager.sanitizeProfileName(name);
@@ -36,7 +36,7 @@ public final class ConfigImport {
         Kind kind;
         if(json.has("modules")) { if(!ConfigFile.validStructure(json))throw new IllegalArgumentException("Invalid Client configuration."); kind=Kind.CLIENT; }
         else { if(!AutoMarketConfigManager.validProfile(json))throw new IllegalArgumentException("Invalid configuration data.");kind=Kind.MARKET; }
-        String key=kind==Kind.CLIENT?"meta_name":XSK.JSON_NAME;
+        String key=kind==Kind.CLIENT?"meta_name":ClientConstants.JSON_NAME;
         String name=clean(kind,json.has(key)?json.get(key).getAsString():"imported_config");
         String base=name;
         for(int i=2;exists(kind,name);i++)name=base+"_"+i;
@@ -46,7 +46,7 @@ public final class ConfigImport {
             int count=json.getAsJsonArray("modules").size();
             summary=count+(count==1?" module / ":" modules / ")+binds+(binds==1?" keybind":" keybinds");
         } else {
-            JsonObject settings=json.getAsJsonObject(XSK.JSON_SETTINGS);
+            JsonObject settings=json.getAsJsonObject(ClientConstants.JSON_SETTINGS);
             JsonElement items=settings.get(market().itemRegistry.getName());
             if(items==null)items=settings.get("item_registry");
             summary=(items!=null && items.isJsonArray()?items.getAsJsonArray().size()+" items / ":"")+"Prices & enchantments";
@@ -75,8 +75,8 @@ public final class ConfigImport {
         if(name.equalsIgnoreCase("autosave") || name.equalsIgnoreCase("autocfg-overrides"))throw new IllegalArgumentException("Choose another name.");
         if(exists(draft.kind(),name))throw new IllegalArgumentException("That name already exists.");
         JsonObject data=draft.data();
-        data.addProperty(draft.kind()==Kind.CLIENT?"meta_name":XSK.JSON_NAME,name);
-        if(draft.kind()==Kind.MARKET)data.addProperty(XSK.JSON_DATE,System.currentTimeMillis());
+        data.addProperty(draft.kind()==Kind.CLIENT?"meta_name":ClientConstants.JSON_NAME,name);
+        if(draft.kind()==Kind.MARKET)data.addProperty(ClientConstants.JSON_DATE,System.currentTimeMillis());
         Path target=file(draft.kind(),name);
         Files.createDirectories(target.getParent());
         if(!(draft.kind()==Kind.CLIENT?ConfigFile.validStructure(data):AutoMarketConfigManager.validProfile(data)))throw new IllegalArgumentException("Invalid configuration data.");

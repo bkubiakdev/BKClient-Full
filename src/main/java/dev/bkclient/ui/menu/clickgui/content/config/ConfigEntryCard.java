@@ -18,7 +18,7 @@ import dev.bkclient.utility.colors.Colors;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/** A Liquid-style config row with the same actions as BK-Client's config card. */
+/** Configuration row with profile actions. */
 public final class ConfigEntryCard {
    public static final float HEIGHT = 30.0F;
    private static final float MENU_WIDTH = 100.0F;
@@ -46,8 +46,6 @@ public final class ConfigEntryCard {
    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
    private boolean menuOpen;
-   private Runnable onAirDrop;
-   public void setOnAirDrop(Runnable action) { this.onAirDrop = action; }
    private boolean pressed;
    private boolean visible;
    private float x;
@@ -96,7 +94,7 @@ public final class ConfigEntryCard {
       float textX = x + 40.0F;
       Font nameFont = Fonts.MEDIUM.getFont(7.0F);
       Font dateFont = Fonts.MEDIUM.getFont(6.0F);
-      context.drawText(nameFont, trim(name, nameFont, Math.max(20.0F, width - (onAirDrop == null ? 82.0F : 104.0F))), textX,
+      context.drawText(nameFont, trim(name, nameFont, Math.max(20.0F, width - 82.0F)), textX,
          centerY - nameFont.height() - 1.0F, Colors.getTextColor().withAlpha(225.0F * alpha));
       context.drawText(dateFont, this.dateFormat.format(new Date(this.modified)), textX, centerY + 2.0F,
          Colors.getTextColor().withAlpha(82.0F * alpha));
@@ -107,12 +105,7 @@ public final class ConfigEntryCard {
 
       this.menuButtonX = x + width - 24.0F;
       this.menuButtonY = centerY - 8.0F;
-      if (onAirDrop != null) {
-         boolean airHover = hit(context.getMouseX(), context.getMouseY(), x + width - 47, centerY - 9, 20, 18);
-         context.drawTextureSmooth(BKClientInit.id("icons/airdrop-receive.png"), x + width - 44, centerY - 6, 12, 12,
-            (airHover ? Colors.getAccent() : Colors.getTextColor()).mulAlpha(alpha));
-         if (airHover) CursorUtility.set(CursorType.HAND);
-      }
+
       boolean menuHovered = hit(context.getMouseX(), context.getMouseY(), this.menuButtonX, this.menuButtonY, 18.0F, 16.0F);
       if (menuHovered || hit(context.getMouseX(), context.getMouseY(), this.toggleX - 2.0F, this.toggleY - 3.0F, 30.0F, 16.0F)) {
          CursorUtility.set(CursorType.HAND);
@@ -160,9 +153,7 @@ public final class ConfigEntryCard {
    public boolean handleClick(double mouseX, double mouseY, MouseButton button) {
       if (button != MouseButton.LEFT && button != MouseButton.RIGHT) return false;
       if (!this.visible && !this.menuOpen) return false;
-      if (!menuOpen && onAirDrop != null && button == MouseButton.LEFT && hit(mouseX, mouseY, x + width - 47, y + 6, 20, 18)) {
-         onAirDrop.run(); return true;
-      }
+
       if (this.menuOpen) {
          float px = this.x + this.width - MENU_WIDTH;
          float py = menuY();

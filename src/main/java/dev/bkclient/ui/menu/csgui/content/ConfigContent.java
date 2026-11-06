@@ -18,7 +18,7 @@ import dev.bkclient.ui.components.textfield.TextField;
 import dev.bkclient.ui.menu.csgui.content.config.ConfigItem;
 import dev.bkclient.utility.colors.ColorRGBA;
 import dev.bkclient.utility.game.CloudConfigUtility;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import dev.bkclient.utility.gui.ScrollHandler;
 import dev.bkclient.utility.render.ScissorUtility;
 
@@ -347,7 +347,7 @@ public class ConfigContent {
             this.notify("Config", "Udostepnianie...");
             CloudConfigUtility.uploadConfig(config.getFileName(), uploadContent).thenAccept(result -> {
                 if (result != null) {
-                    String code = XSK.CLOUD_PREFIX + result.key;
+                    String code = ClientConstants.CLOUD_PREFIX + result.key;
                     if (privateMode && result.deletionKey != null) {
                         code += result.deletionKey;
                     }

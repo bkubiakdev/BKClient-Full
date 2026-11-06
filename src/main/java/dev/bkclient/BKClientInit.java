@@ -15,7 +15,6 @@ import dev.bkclient.systems.event.handlers.ServerConnectionHandler;
 import dev.bkclient.systems.file.FileManager;
 import dev.bkclient.systems.friends.FriendManager;
 import dev.bkclient.systems.localization.Localizator;
-import dev.bkclient.systems.supabase.SupabaseService;
 import dev.bkclient.systems.modules.ModuleManager;
 import dev.bkclient.systems.modules.constructions.swinganim.SwingManager;
 import dev.bkclient.systems.modules.constructions.swinganim.presets.SwingPresetManager;
@@ -199,7 +198,6 @@ public enum BKClientInit implements IMinecraft {
                if (xray != null) xray.shutdownScanner();
             }
          },
-         SupabaseService::stopIfInitialized,
          dev.bkclient.utility.game.ClientTelemetryUtility::shutdown,
          dev.bkclient.utility.game.AutoMarketRemote::shutdown,
          dev.bkclient.ui.mainmenu.CustomBackgroundLoader::shutdown,

@@ -4,11 +4,10 @@ import dev.bkclient.framework.base.CustomDrawContext;
 import dev.bkclient.framework.objects.BorderRadius;
 import dev.bkclient.utility.colors.ColorRGBA;
 
-/** Small circular add badge over the sender's avatar, matching AirDrop's layout. */
+/** Circular add badge over the sender's avatar. */
 public final class FriendRequestIcon {
     private FriendRequestIcon() {}
     public static void draw(CustomDrawContext c, float x, float y, float size, ColorRGBA color) {
-        // Same outer circle and one-unit inset as AirDrop's 11/9 avatar badge.
         c.drawSquircle(x, y, size, size, 2, BorderRadius.all(size / 2),
             dev.bkclient.utility.colors.Colors.getBackgroundColor().mulAlpha(color.getAlpha() / 255.0F));
         float inset = size / 11;

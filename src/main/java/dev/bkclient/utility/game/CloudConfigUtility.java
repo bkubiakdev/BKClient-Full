@@ -33,12 +33,12 @@ public final class CloudConfigUtility {
             HttpURLConnection conn = null;
             try {
                 String protectedContent = xor(compress(content));
-                java.net.URI uri = java.net.URI.create(XSK.POST_URL);
+                java.net.URI uri = java.net.URI.create(ClientConstants.POST_URL);
                 java.net.URL url = uri.toURL();
                 conn = open(url);
                 conn.setRequestMethod("POST");
-                conn.setRequestProperty(XSK.CONTENT_TYPE, "text/plain");
-                conn.setRequestProperty(XSK.USER_AGENT_HDR, XSK.USER_AGENT_VAL + BKClientInit.VERSION);
+                conn.setRequestProperty(ClientConstants.CONTENT_TYPE, "text/plain");
+                conn.setRequestProperty(ClientConstants.USER_AGENT_HDR, ClientConstants.USER_AGENT_VAL + BKClientInit.VERSION);
                 ClientTelemetryUtility.applyClientHeaders(conn);
                 conn.setDoOutput(true);
 
@@ -54,8 +54,8 @@ public final class CloudConfigUtility {
                 try (InputStream is = conn.getInputStream()) {
                     String response = new String(is.readAllBytes(), StandardCharsets.UTF_8);
                     JsonObject responseJson = JsonParser.parseString(response).getAsJsonObject();
-                    String key = responseJson.get(XSK.JSON_KEY_FIELD).getAsString();
-                    String delKey = responseJson.has(XSK.JSON_DEL_KEY) ? responseJson.get(XSK.JSON_DEL_KEY).getAsString() : null;
+                    String key = responseJson.get(ClientConstants.JSON_KEY_FIELD).getAsString();
+                    String delKey = responseJson.has(ClientConstants.JSON_DEL_KEY) ? responseJson.get(ClientConstants.JSON_DEL_KEY).getAsString() : null;
                     return new CloudResult(key, delKey);
                 }
             } catch (Exception e) {
@@ -71,12 +71,12 @@ public final class CloudConfigUtility {
         return ClientAsyncExecutor.supply(() -> {
             HttpURLConnection conn = null;
             try {
-                java.net.URI uri = java.net.URI.create(XSK.BASE_URL + key);
+                java.net.URI uri = java.net.URI.create(ClientConstants.BASE_URL + key);
                 java.net.URL url = uri.toURL();
                 conn = open(url);
                 conn.setRequestMethod("DELETE");
-                conn.setRequestProperty(XSK.HTTP_DEL_HDR, deletionKey);
-                conn.setRequestProperty(XSK.USER_AGENT_HDR, XSK.USER_AGENT_VAL + BKClientInit.VERSION);
+                conn.setRequestProperty(ClientConstants.HTTP_DEL_HDR, deletionKey);
+                conn.setRequestProperty(ClientConstants.USER_AGENT_HDR, ClientConstants.USER_AGENT_VAL + BKClientInit.VERSION);
 
                 return conn.getResponseCode() >= 200 && conn.getResponseCode() < 300;
             } catch (Exception e) {
@@ -96,13 +96,13 @@ public final class CloudConfigUtility {
         return ClientAsyncExecutor.supply(() -> {
             HttpURLConnection conn = null;
             try {
-                java.net.URI uri = java.net.URI.create(XSK.BASE_URL + code);
+                java.net.URI uri = java.net.URI.create(ClientConstants.BASE_URL + code);
                 java.net.URL url = uri.toURL();
                 conn = open(url);
                 conn.setRequestMethod("GET");
-                conn.setRequestProperty(XSK.USER_AGENT_HDR, XSK.USER_AGENT_VAL + BKClientInit.VERSION);
+                conn.setRequestProperty(ClientConstants.USER_AGENT_HDR, ClientConstants.USER_AGENT_VAL + BKClientInit.VERSION);
                 if (deletionKey != null && !deletionKey.isEmpty()) {
-                    conn.setRequestProperty(XSK.HTTP_DEL_HDR, deletionKey);
+                    conn.setRequestProperty(ClientConstants.HTTP_DEL_HDR, deletionKey);
                 }
 
                 if (conn.getResponseCode() != 200) {
@@ -135,22 +135,22 @@ public final class CloudConfigUtility {
         try (GZIPOutputStream gzip = new GZIPOutputStream(bytes)) {
             gzip.write(input.getBytes(StandardCharsets.UTF_8));
         }
-        return XSK.GZIP_PREFIX + Base64.getEncoder().encodeToString(bytes.toByteArray());
+        return ClientConstants.GZIP_PREFIX + Base64.getEncoder().encodeToString(bytes.toByteArray());
     }
 
     private static String decompressIfNeeded(String input) throws IOException {
-        if (!input.startsWith(XSK.GZIP_PREFIX)) {
+        if (!input.startsWith(ClientConstants.GZIP_PREFIX)) {
             return input;
         }
 
-        byte[] compressed = Base64.getDecoder().decode(input.substring(XSK.GZIP_PREFIX.length()));
+        byte[] compressed = Base64.getDecoder().decode(input.substring(ClientConstants.GZIP_PREFIX.length()));
         try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
             return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
     private static String xor(String input) {
-        String k = XSK.XOR_KEY_VAL;
+        String k = ClientConstants.XOR_KEY_VAL;
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
             output.append((char) (input.charAt(i) ^ k.charAt(i % k.length())));

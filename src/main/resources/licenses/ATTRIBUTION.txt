@@ -20,5 +20,5 @@ Media icon sources:
 | edge.png | https://edgecdn-embza6g8cacagcbn.z01.azurefd.net/welcome/static/favicon.png (linked by https://explore.microsoft.com/en-us/edge/) | 96x96 |
 
 Dependencies declared in build.gradle retain their own licenses, including
-Fabric, JNA, JavaCV/FFmpeg, ZXing and NanoHTTPD. Bundled native binaries, models,
+Fabric, JNA, JavaCV/FFmpeg and ZXing. Bundled native binaries, models,
 audio and fonts are not relicensed by the root MIT license.

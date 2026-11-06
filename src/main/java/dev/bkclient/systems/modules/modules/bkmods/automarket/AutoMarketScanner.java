@@ -1,7 +1,7 @@
 package dev.bkclient.systems.modules.modules.bkmods.automarket;
 
 import dev.bkclient.systems.setting.settings.rynek.PriceEntry;
-import dev.bkclient.utility.game.XSK;
+import dev.bkclient.utility.game.ClientConstants;
 import dev.bkclient.utility.inventory.EnchantmentUtility;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.component.DataComponentTypes;
@@ -348,8 +348,8 @@ public final class AutoMarketScanner {
         // Compare item identifiers.
         String m1 = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).getPath().toLowerCase();
         String m2 = entry.getMaterial().toLowerCase();
-        if (m2.startsWith(XSK.MINECRAFT_PFX))
-            m2 = m2.substring(XSK.MINECRAFT_PFX.length());
+        if (m2.startsWith(ClientConstants.MINECRAFT_PFX))
+            m2 = m2.substring(ClientConstants.MINECRAFT_PFX.length());
 
         if (!m1.equals(m2)) {
             return false;
@@ -1382,8 +1382,8 @@ public final class AutoMarketScanner {
 
             // Hardcoded fallback for common Polish seller prefixes
             String cleanLower = cleanLine.toLowerCase();
-            if (cleanLower.contains(XSK.SCANNER_WYSTAWIL1) || cleanLower.contains(XSK.SCANNER_WYSTAWIL2)
-                    || cleanLower.contains(XSK.SCANNER_WYSTAWIONO)) {
+            if (cleanLower.contains(ClientConstants.SCANNER_WYSTAWIL1) || cleanLower.contains(ClientConstants.SCANNER_WYSTAWIL2)
+                    || cleanLower.contains(ClientConstants.SCANNER_WYSTAWIONO)) {
                 continue;
             }
 
@@ -1445,9 +1445,9 @@ public final class AutoMarketScanner {
         }
 
         double multiplier = 1.0;
-        if (raw.endsWith(XSK.SCANNER_MLD) || raw.endsWith("b")) {
+        if (raw.endsWith(ClientConstants.SCANNER_MLD) || raw.endsWith("b")) {
             multiplier = 1000000000.0;
-            raw = raw.substring(0, raw.length() - (raw.endsWith(XSK.SCANNER_MLD) ? 3 : 1));
+            raw = raw.substring(0, raw.length() - (raw.endsWith(ClientConstants.SCANNER_MLD) ? 3 : 1));
         } else if (raw.endsWith("t")) {
             multiplier = 1000000000000.0;
             raw = raw.substring(0, raw.length() - 1);
@@ -1494,7 +1494,7 @@ public final class AutoMarketScanner {
     private RegistryKey<Enchantment> getEnchantmentKey(String id) {
         String normalized = id.toLowerCase().replace(" ", "_");
         Identifier identifier = normalized.contains(":") ? Identifier.of(normalized)
-                : Identifier.of(XSK.MINECRAFT_NS, normalized);
+                : Identifier.of(ClientConstants.MINECRAFT_NS, normalized);
         return RegistryKey.of(RegistryKeys.ENCHANTMENT, identifier);
     }
 

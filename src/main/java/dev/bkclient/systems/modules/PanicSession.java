@@ -48,7 +48,6 @@ public final class PanicSession {
                 () -> client.getMusicTracker().shutdown(),
                 () -> client.getDiscordManager().shutdown(),
                 () -> client.getModuleManager().getModule(dev.bkclient.systems.modules.modules.visuals.XRay.class).shutdownScanner(),
-                dev.bkclient.systems.supabase.SupabaseService::stopIfInitialized,
                 dev.bkclient.utility.game.ClientTelemetryUtility::shutdown,
                 dev.bkclient.utility.game.AutoMarketRemote::shutdown,
                 dev.bkclient.utility.concurrent.ClientAsyncExecutor::shutdown);

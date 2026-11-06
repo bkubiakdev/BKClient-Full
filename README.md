@@ -72,14 +72,13 @@ On Linux or macOS, use `sh ./gradlew runClient`, subject to the native-component
 
 ## Online services and startup behavior
 
-This source snapshot uses **`https://changeme.net`** placeholders for cloud configuration sharing, friend presence, remote AutoMarket control, AirDrop and version checks. The server implementation is not included. Those features need your own compatible backend and real endpoint URLs. AirDrop and friend popups are currently disabled in `DeferredFeatures`.
+This source snapshot uses **`https://changeme.net`** placeholders for cloud configuration sharing, friend presence, remote AutoMarket control and version checks. The server implementation is not included. Those features need your own compatible backend and real endpoint URLs. Friend popups are currently disabled in `DeferredFeatures`.
 
 Endpoint definitions are in:
 
-- `utility/game/XSK.java` — cloud configuration URLs.
+- `utility/game/ClientConstants.java` — cloud configuration URLs.
 - `utility/game/ClientTelemetryUtility.java` — friend presence.
 - `utility/game/AutoMarketRemote.java` — remote market control.
-- `systems/supabase/SupabaseService.java` — AirDrop.
 - `systems/update/UpdateChecker.java` — version checks.
 
 These paths are relative to `src/main/java/dev/bkclient/`. Search for `changeme.net` to find the corresponding website links and metadata too. Placeholder URLs are still used by the request code; they are not a working service or an offline switch.
@@ -100,7 +99,7 @@ src/main/java/dev/bkclient/
 src/main/resources/
   assets/         Textures, shaders, models, sounds and translations
   licenses/       Attribution and bundled license notices
-  third_party/    Upstream license and provenance files
+  third_party/    License text supplied with third-party components
 ```
 
 ## Issues
