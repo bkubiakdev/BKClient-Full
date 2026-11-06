@@ -1,0 +1,12 @@
+{
+  "vertex": "bkclient:core/sky_effects/world_streak",
+  "fragment": "bkclient:core/sky_effects/world_streak",
+  "samplers": [],
+  "uniforms": [
+    {"name":"WorldView","type":"matrix4x4","count":16,"values":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]},
+    {"name":"WorldProjection","type":"matrix4x4","count":16,"values":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]},
+    {"name":"Part","type":"float","count":1,"values":[0]},
+    {"name":"SquareHead","type":"float","count":1,"values":[1]},
+    {"name":"Brightness","type":"float","count":1,"values":[1]}
+  ]
+}

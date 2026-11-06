@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "package": "dev.bkclient.larp.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["LarpServerEffectMixin", "LarpLifecycleMixin", "LarpCooldownMixin",
+    "AbstractClientPlayerEntitySkinMixin",
+    "BossBarHudAccessor",
+    "ClientPlayerInteractionManagerMixin",
+    "DrawContextCountMixin",
+    "HeldItemNameMixin",
+    "ItemModelManagerMixin",
+    "ItemStackBarMixin",
+    "ItemStackNameMixin",
+    "ItemStackTooltipMixin",
+    "LivingEntityConsumeMixin",
+    "OtherClientPlayerEntityCloneMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

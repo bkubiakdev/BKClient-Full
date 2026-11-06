@@ -1,0 +1,799 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url = 'https://maven.fabricmc.net/' }
+    }
+    dependencies {
+        classpath 'net.fabricmc:mercury:0.4.3'
+        classpath 'net.fabricmc:mercurymixin:0.2.2'
+        classpath 'net.fabricmc:mapping-io:0.8.0'
+        classpath 'net.fabricmc:lorenz-tiny:4.0.2'
+    }
+}
+
+plugins {
+    id 'fabric-loom' version '1.10-SNAPSHOT'
+    id 'maven-publish'
+}
+
+import net.fabricmc.mappingio.MappingReader
+import net.fabricmc.mappingio.tree.MemoryMappingTree
+import net.fabricmc.lorenztiny.TinyMappingsReader
+import net.fabricmc.loom.LoomGradleExtension
+import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
+import org.cadixdev.lorenz.MappingSet
+import org.cadixdev.mercury.Mercury
+import org.cadixdev.mercury.remapper.MercuryRemapper
+import org.cadixdev.mercury.mixin.MixinRemapper
+
+version = project.mod_version
+
+tasks.register('immediatelyFastCompatibilityTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.ImmediatelyFastCompatibilityTest'
+}
+check.dependsOn immediatelyFastCompatibilityTest
+tasks.register('perspektiveCompatibilityTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.PerspektiveCompatibilityTest'
+}
+check.dependsOn perspektiveCompatibilityTest
+
+tasks.register('terrainCompatibilityTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.TerrainCompatibilityTest'
+}
+check.dependsOn terrainCompatibilityTest
+
+tasks.register('sodiumTerrainTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath + sourceSets.main.compileClasspath
+    mainClass = 'dev.bkclient.compat.SodiumTerrainTest'
+}
+check.dependsOn sodiumTerrainTest
+
+tasks.register('freecamConfigMigrationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.config.FreecamConfigMigrationTest'
+}
+check.dependsOn freecamConfigMigrationTest
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+loom {
+    runs {
+        client {
+            runDir = project.findProperty('clientRunDir') ?: 'run'
+            if (System.getProperty('os.name').startsWith('Windows')) {
+                // A regular file cannot host AF_UNIX sockets. Force Java's PipeImpl
+                // to use its TCP loopback fallback for Netty selectors on Windows.
+                vmArg "-Djdk.net.unixdomain.tmpdir=${project.file('build.gradle').absolutePath}"
+            }
+        }
+    }
+}
+
+repositories {
+    maven {
+        name = "Fabric"
+        url = "https://maven.fabricmc.net/"
+    }
+    mavenCentral()
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
+}
+
+dependencies {
+    // Optional integration, remapped for compilation only; never bundle Sodium.
+    modCompileOnly "maven.modrinth:sodium:mc1.21.4-0.6.13-fabric"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    compileOnly "org.projectlombok:lombok:1.18.38"
+    annotationProcessor "org.projectlombok:lombok:1.18.38"
+    implementation "com.google.code.findbugs:jsr305:3.0.2"
+    implementation "com.google.zxing:core:3.5.3"
+    implementation("com.google.zxing:javase:3.5.3") {
+        exclude group: 'com.github.jai-imageio', module: 'jai-imageio-core'
+    }
+    implementation "org.nanohttpd:nanohttpd:2.3.1"
+    // Pinned to the version Gradle already resolves to: javacv brings jna up to
+    // 5.15.0 on the compile classpath, so bundling 5.7.0 shipped a jar the code was never
+    // compiled against, and jna-platform 5.15.0 would call into methods it does not have.
+    implementation "net.java.dev.jna:jna:5.15.0"
+    include "net.java.dev.jna:jna:5.15.0"
+    // jna-platform carries com.sun.jna.platform.win32 (User32, Kernel32Util), which
+    // TitleBarHelper and the window embedder both need. It was only ever on the
+    // compile classpath as a transitive of javacv, so the shipped jar was missing it
+    // and those calls died with NoClassDefFoundError rather than a catchable Exception.
+    implementation "net.java.dev.jna:jna-platform:5.15.0"
+    include "net.java.dev.jna:jna-platform:5.15.0"
+    // Bundle the native libraries used by the animated main-menu background.
+    // (VideoBackgroundPlayer, FFmpegFrameGrabber) worked under `runClient`
+    // off the dev classpath but was silently missing from the shipped jar.
+    implementation "org.bytedeco:javacv:1.5.12"
+    include "org.bytedeco:javacv:1.5.12"
+    implementation "org.bytedeco:javacpp:1.5.12"
+    include "org.bytedeco:javacpp:1.5.12"
+    implementation "org.bytedeco:javacpp:1.5.12:windows-x86_64"
+    include "org.bytedeco:javacpp:1.5.12:windows-x86_64"
+    implementation "org.bytedeco:ffmpeg:7.1.1-1.5.12"
+    include "org.bytedeco:ffmpeg:7.1.1-1.5.12"
+    implementation "org.bytedeco:ffmpeg:7.1.1-1.5.12:windows-x86_64"
+    include "org.bytedeco:ffmpeg:7.1.1-1.5.12:windows-x86_64"
+
+
+
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+    it.options.encoding = 'UTF-8'
+}
+
+tasks.register('migrationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.file.LegacyDataMigrationTest'
+}
+
+check.dependsOn migrationTest
+
+tasks.register('safeJsonTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.file.SafeJsonFileTest'
+}
+check.dependsOn safeJsonTest
+
+tasks.register('privateMessageTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.friends.PrivateMessageDetectorTest'
+}
+check.dependsOn privateMessageTest
+
+tasks.register('friendRequestTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.friends.FriendRequestDetectorTest'
+}
+check.dependsOn friendRequestTest
+tasks.register('presencePrivacyTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.friends.PresencePrivacyTest'
+}
+check.dependsOn presencePrivacyTest
+
+tasks.register('waypointTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.waypoints.WaypointStoreTest'
+}
+check.dependsOn waypointTest
+
+tasks.register('performanceTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.performance.FrameStatsTest'
+}
+check.dependsOn performanceTest
+
+tasks.register('moduleLookupTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.ClassLookupListTest'
+}
+check.dependsOn moduleLookupTest
+
+
+tasks.register('trapGeometryTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.game.TrapPlacementGeometryTest'
+}
+check.dependsOn trapGeometryTest
+
+tasks.register('continuousYawTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.rotations.ContinuousYawTest'
+}
+check.dependsOn continuousYawTest
+
+tasks.register('aura2Test', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.combatengine.BKAdaptiveRotationsTest'
+}
+check.dependsOn aura2Test
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}"}
+    }
+}
+
+tasks.register('remapIntermediarySources') {
+    dependsOn 'genSources'
+
+    doLast {
+        def loom = LoomGradleExtension.get(project)
+        def mappingsJar = configurations.mappings.singleFile
+        def tinyPath = zipTree(mappingsJar).matching {
+            include 'mappings/mappings.tiny', '*.tiny'
+        }.singleFile.toPath()
+
+        def tree = new MemoryMappingTree()
+        MappingReader.read(tinyPath, tree)
+
+        def mappings = new TinyMappingsReader(tree, 'intermediary', 'named').read(MappingSet.create())
+        def namedMc = loom.getMinecraftJarsCollection(MappingsNamespace.NAMED)
+        def intermediaryMc = loom.getMinecraftJarsCollection(MappingsNamespace.INTERMEDIARY)
+        def mcLibs = configurations.getByName('minecraftLibraries')
+        def remapClasspath = files(intermediaryMc, mcLibs, sourceSets.main.compileClasspath.minus(namedMc))
+
+        def srcIn = file('src/main/java').toPath()
+        def srcOut = file('build/remappedSources/main/java').toPath()
+
+        def mercury = new Mercury()
+        mercury.setGracefulClasspathChecks(true)
+        mercury.setGracefulJavadocClasspathChecks(true)
+        mercury.getClassPath().addAll(remapClasspath.files.collect { it.toPath() })
+        mercury.getProcessors().add(MercuryRemapper.create(mappings))
+        mercury.getProcessors().add(MixinRemapper.create(mappings))
+
+        mercury.rewrite(srcIn, srcOut)
+    }
+}
+
+// Regression checks for delayed movement packet lifetime and ordering.
+tasks.register('backtrackTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.modules.combat.backtrack.PacketDelayQueueTest'
+}
+check.dependsOn backtrackTest
+
+tasks.register('backtrackTriggerTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.modules.combat.backtrack.BacktrackTriggerTest'
+}
+check.dependsOn backtrackTriggerTest
+
+// Rank labels must not confuse ordinary player names or donor ranks with staff.
+tasks.register('staffRankTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.staff.StaffRankMatcherTest'
+}
+check.dependsOn staffRankTest
+
+tasks.register('shutdownTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.concurrent.ShutdownTasksTest'
+}
+check.dependsOn shutdownTest
+
+// Explicit opt-in: needs a local OpenGL context; regular check stays headless.
+tasks.register('flameHandsShaderTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.FlameHandsShaderTest'
+}
+
+// Explicit opt-in: exercises real Windows media sessions in two separate JVMs.
+tasks.register('mediaCleanupTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.redstones.mediaplayerinfo.MediaCleanupTest'
+}
+
+
+
+tasks.register('auraMovementTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.combatengine.AuraMovementTest'
+}
+check.dependsOn auraMovementTest
+
+
+
+tasks.register('colorSelectorTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.setting.LinkedModeSettingTest'
+}
+check.dependsOn colorSelectorTest
+
+
+tasks.register('moduleFavoritesTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.ModuleFavoritesTest'
+}
+check.dependsOn moduleFavoritesTest
+
+tasks.register('v2ThemeTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.menu.clickgui.ClickGuiV2ThemeTest'
+}
+
+tasks.register('auraV3MathTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.combatengine.AuraV3MathTest'
+}
+check.dependsOn auraV3MathTest
+
+tasks.register('adaptiveAuraTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.combatengine.AdaptiveRotationsTest'
+}
+check.dependsOn adaptiveAuraTest
+tasks.register('bkengineAttackTransactionTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.combatengine.BKEngineAttackTransactionTest'
+}
+check.dependsOn bkengineAttackTransactionTest
+check.dependsOn v2ThemeTest
+
+tasks.register('colorPickerMathTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.components.ColorPickerMathTest'
+}
+check.dependsOn colorPickerMathTest
+
+tasks.register('guiSearchTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.menu.clickgui.GuiSearchTest'
+}
+check.dependsOn guiSearchTest
+
+tasks.register('knockbackDirectionTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.math.KnockbackDirectionTest'
+}
+check.dependsOn knockbackDirectionTest
+
+tasks.register('criticalWindowTest', JavaExec) {
+ dependsOn testClasses
+ classpath = sourceSets.test.runtimeClasspath
+ mainClass = 'dev.bkclient.combatengine.CriticalWindowTest'
+}
+check.dependsOn criticalWindowTest
+
+ tasks.register('shaderEspDefaultsTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.ShaderEspDefaultsTest'
+ }
+ check.dependsOn shaderEspDefaultsTest
+
+tasks.register('performanceResourceTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.concurrent.PerformanceResourceTest'
+}
+check.dependsOn performanceResourceTest
+
+// Opt-in real OpenGL smoke test, without launching the game.
+tasks.register('shaderLifecycleTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.ShaderLifecycleTest'
+}
+
+// Opt-in hidden GL context, no Minecraft instance.
+tasks.register('guiBatchShaderTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.GuiBatchShaderTest'
+}
+
+// Opt-in: pixel comparison of per-label and per-column MSDF fading.
+tasks.register('guiTextBatchShaderTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.GuiTextBatchShaderTest'
+}
+
+tasks.register('hotbarSelectionAnimationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.HotbarSelectionAnimationTest'
+}
+check.dependsOn hotbarSelectionAnimationTest
+
+tasks.register('animatedCapeTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.AnimatedCapeTest'
+}
+check.dependsOn animatedCapeTest
+
+tasks.register('customCapeTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.CustomCapeImagesTest'
+}
+check.dependsOn customCapeTest
+
+tasks.register('customCapeLinksTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.CustomCapeLinksTest'
+}
+check.dependsOn customCapeLinksTest
+
+tasks.register('configShareCodeTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.config.ConfigShareCodeTest'
+}
+check.dependsOn configShareCodeTest
+
+tasks.register('clickSysEnglishTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.ClickSysEnglishTest'
+}
+check.dependsOn clickSysEnglishTest
+
+tasks.register('clickSysSettingsTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.ClickSysSettingsTest'
+}
+check.dependsOn clickSysSettingsTest
+
+tasks.register('baritoneBridgeTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.game.BaritoneBridgeTest'
+}
+check.dependsOn baritoneBridgeTest
+
+tasks.register('fontDigitReaderTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.text.FontDigitReaderTest'
+}
+check.dependsOn fontDigitReaderTest
+
+tasks.register('miningChallengeGateTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.text.MiningChallengeGateTest'
+}
+check.dependsOn miningChallengeGateTest
+
+tasks.register('cooldownsHudMigrationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.config.CooldownsHudMigrationTest'
+}
+check.dependsOn cooldownsHudMigrationTest
+
+
+
+// Native image failure paths and bounded wallpaper decoding.
+tasks.register('screenshotResourceTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.game.ScreenshotResourceTest'
+}
+check.dependsOn screenshotResourceTest
+
+tasks.register('boundedImageReaderTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.BoundedImageReaderTest'
+    maxHeapSize = '128m'
+}
+check.dependsOn boundedImageReaderTest
+
+// Both nametag styles share ESP configuration, including the embedded BKClient renderer.
+tasks.register('espSettingsTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.EspSettingsTest'
+}
+check.dependsOn espSettingsTest
+
+tasks.register('retiredModulesMigrationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.config.RetiredModulesMigrationTest'
+}
+check.dependsOn retiredModulesMigrationTest
+
+tasks.register('searchableOptionsTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.SearchableOptionsTest'
+}
+check.dependsOn searchableOptionsTest
+
+tasks.register('simplifiedModulesTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.SimplifiedModulesTest'
+}
+check.dependsOn simplifiedModulesTest
+
+tasks.register('sliderDefaultsTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.setting.SliderDefaultsTest'
+}
+check.dependsOn sliderDefaultsTest
+
+tasks.register('polishLocalizationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.localization.PolishLocalizationTest'
+}
+check.dependsOn polishLocalizationTest
+
+tasks.register('exclusiveSelectionsTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.setting.ExclusiveSelectionsTest'
+}
+check.dependsOn exclusiveSelectionsTest
+
+
+tasks.register('webLagBatchTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.combatengine.WebLagBatchTest'
+}
+check.dependsOn webLagBatchTest
+
+
+tasks.register('clickSysAudioSettingsTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.ClickSysAudioSettingsTest'
+}
+check.dependsOn clickSysAudioSettingsTest
+
+
+tasks.register('friendsThemeTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.FriendsThemeTest'
+}
+check.dependsOn friendsThemeTest
+
+// Explicit driver test: needs a local OpenGL context, so it is separate from portable check.
+tasks.register('guiShaderGpuTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.GuiShaderGpuTest'
+}
+
+tasks.register('guiFramebufferGpuTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.GuiFramebufferGpuTest'
+}
+
+tasks.register('terrainStarsGpuTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.TerrainStarsGpuTest'
+}
+
+tasks.register('armorGlassGpuTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.ArmorGlassGpuTest'
+}
+
+tasks.register('targetScanTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.TargetScanTest'
+}
+check.dependsOn targetScanTest
+
+tasks.register('inspectAnimationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.animation.InspectAnimationTest'
+}
+check.dependsOn inspectAnimationTest
+
+tasks.register('cyberspaceGpuTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.CyberspaceGpuTest'
+}
+
+tasks.register('skyStreakTimelineTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.SkyStreakTimelineTest'
+}
+tasks.named('check') { dependsOn 'skyStreakTimelineTest' }
+
+tasks.register('worldSaturationGpuTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.WorldSaturationGpuTest'
+}
+
+tasks.register('targetScanGpuTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.compat.TargetScanGpuTest'
+}
+
+tasks.register('cameraModulesTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.clicksys.CameraModulesTest'
+}
+check.dependsOn cameraModulesTest
+
+
+tasks.register('autoMarketSliderTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.ui.menu.csgui.content.AutoMarketSliderTest'
+}
+check.dependsOn autoMarketSliderTest
+
+
+tasks.register('pendingGuiWritesTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.setting.PendingGuiWritesTest'
+}
+check.dependsOn pendingGuiWritesTest
+
+// Command cadence must not depend on mining/movement ticks.
+tasks.register('miningCommandTimerTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.time.MiningCommandTimerTest'
+}
+tasks.named('check') { dependsOn 'miningCommandTimerTest' }
+
+ tasks.register('anarchiaPetExpiryTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.modules.bkmods.automarket.AnarchiaPetExpiryTest'
+}
+tasks.named('check') { dependsOn 'anarchiaPetExpiryTest' }
+
+tasks.register('bannedLoreTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.modules.bkmods.automarket.BannedLoreTest'
+}
+tasks.named('check') { dependsOn 'bannedLoreTest' }
+
+tasks.register('skyConfigMigrationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.config.SkyConfigMigrationTest'
+}
+tasks.named('check') { dependsOn 'skyConfigMigrationTest' }
+
+tasks.register('ambienceTimeLightTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.ambience.AmbienceTimeLightTest'
+}
+tasks.named('check') { dependsOn 'ambienceTimeLightTest' }
+
+tasks.register('lyricsTimelineTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.sounds.LyricsTimelineTest'
+}
+tasks.named('check') { dependsOn 'lyricsTimelineTest' }
+
+tasks.register('lyricsFollowTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.sounds.LyricsFollowTest'
+}
+tasks.named('check') { dependsOn 'lyricsFollowTest' }
+
+tasks.register('timedLyricsSearchTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.sounds.TimedLyricsSearchTest'
+    if (project.hasProperty('liveLyricsTest')) args (project.property('liveLyricsTest') == 'blueberry' ? 'live-blueberry' : 'live')
+}
+tasks.named('check') { dependsOn 'timedLyricsSearchTest' }
+
+tasks.register('lyricsWordRevealTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.sounds.LyricsWordRevealTest'
+}
+tasks.named('check') { dependsOn 'lyricsWordRevealTest' }
+
+// Pure layout, motion and styling regressions; no Minecraft window required.
+tasks.register('lyricsCustomTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.sounds.LyricsCustomTest'
+}
+tasks.named('check') { dependsOn 'lyricsCustomTest' }
+
+// Catalog resources and local cosmetic selections must remain safe across restarts.
+tasks.register('cosmeticsCatalogTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.cosmetics.CosmeticCatalogTest'
+}
+check.dependsOn cosmeticsCatalogTest
+
+tasks.register('characterAnimationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.cosmetics.render.CharacterAnimationTest'
+}
+check.dependsOn characterAnimationTest
+
+ tasks.register('cosmeticsAnimationTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.cosmetics.render.MeleeAnimationControllerTest'
+ }
+ check.dependsOn cosmeticsAnimationTest
+
+tasks.register('blizzardStateTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.utility.render.blizzard.BlizzardStateTest'
+}
+check.dependsOn blizzardStateTest
+
+tasks.register('autoZmiankaTest', JavaExec) {
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.bkclient.systems.modules.modules.bkmods.enchant.EnchantRulesTest'
+}
+check.dependsOn autoZmiankaTest
+
+

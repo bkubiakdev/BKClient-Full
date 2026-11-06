@@ -1,0 +1,17 @@
+{
+  "vertex": "bkclient:core/fog_blur/vertex",
+  "fragment": "bkclient:core/fog_blur/fragment",
+  "samplers": [
+    { "name": "Sampler0" },
+    { "name": "Sampler1" },
+    { "name": "Sampler2" }
+  ],
+  "uniforms": [
+    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "ProjMat",      "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "FogParams",    "type": "float", "count": 4, "values": [ 32.0, 96.0, 0.05, 1024.0 ] },
+    { "name": "BlurStrength", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "BlurFloor",    "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "SkipSky",      "type": "float", "count": 1, "values": [ 0.0 ] }
+  ]
+}

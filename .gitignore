@@ -1,0 +1,37 @@
+# Gradle and Minecraft generated state
+.gradle/
+build/
+bin/
+run/
+logs/
+work/
+plugins/
+tools/
+
+# Local editor and recovery files
+.codex-tmp-restore-bk/
+.idea/
+.vscode/
+*.iml
+
+# Generated/runtime output
+*.log
+*.lck
+hs_err_pid*
+replay_pid*
+
+# Local secrets and machine-specific settings
+*.env
+.env
+secrets/
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+
+# Private credentials and local machine overrides
+.env.*
+*.pem
+*.key
+gradle-local.properties

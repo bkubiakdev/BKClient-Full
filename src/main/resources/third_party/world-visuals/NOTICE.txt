@@ -1,0 +1,8 @@
+BKClient world visuals - license notice
+
+LICENSE_CC0-1.0 reproduces the identical license text supplied with the
+imported world-visual components. The root MIT license applies to BKClient
+contributions and does not relicense third-party code or assets.
+
+Some imported material was supplied without a standalone license. No
+additional permission or license is asserted for that material here.

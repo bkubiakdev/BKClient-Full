@@ -1,0 +1,101 @@
+{
+  "vertex": "bkclient:core/hud_ring/vertex",
+  "fragment": "bkclient:core/hud_ring/fragment",
+  "samplers": [],
+  "uniforms": [
+    {
+      "name": "ModelViewMat",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "ProjMat",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "Extent",
+      "type": "float",
+      "count": 1,
+      "values": [
+        4
+      ]
+    },
+    {
+      "name": "Radius",
+      "type": "float",
+      "count": 1,
+      "values": [
+        2.4
+      ]
+    },
+    {
+      "name": "HalfWidth",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.4
+      ]
+    },
+    {
+      "name": "Start",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "Sweep",
+      "type": "float",
+      "count": 1,
+      "values": [
+        6.283185
+      ]
+    },
+    {
+      "name": "Rounded",
+      "type": "int",
+      "count": 1,
+      "values": [
+        1
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = 'MinecraftForge'
+            url = 'https://maven.minecraftforge.net/'
+        }
+        maven {
+            name = 'Fabric Snapshot'
+            url = 'https://maven.fabricmc.net/snapshots/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}

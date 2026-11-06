@@ -1,0 +1,36 @@
+package dev.bkclient.ui.clicksys.port.enums;
+
+public enum Language {
+   RU("Russian", "RU"),
+   EN("English", "EN");
+
+   private final String text;
+   private final String text2;
+   private static final Language[] languageArray = getLanguageArray();
+
+   private Language(String text3, String text4) {
+      this.text = text3;
+      this.text2 = text4;
+   }
+
+   public String getText2() {
+      return this.text2;
+   }
+
+   public String getText() {
+      return this.text;
+   }
+
+   private static Language[] getLanguageArray() {
+      return new Language[]{RU, EN};
+   }
+
+   public Language getLanguage() {
+      Language[] alanguage = values();
+      return EN;
+   }
+
+   public static Language getLanguageByString(String text) {
+      return EN;
+   }
+}

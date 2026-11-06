@@ -1,0 +1,81 @@
+package dev.bkclient.ui.clicksys;
+import dev.bkclient.ui.clicksys.port.data.FriendLabels;
+import dev.bkclient.ui.clicksys.port.gui.widget.TextInputController;
+import dev.bkclient.ui.clicksys.port.module.client.ThemeModule;
+import dev.bkclient.ui.clicksys.port.setting.*;
+import com.google.gson.JsonObject;
+import java.nio.file.*;
+import java.util.*;
+public final class FriendsThemeTest {
+ static void check(boolean value,String message){if(!value)throw new AssertionError(message);}
+ static Setting find(ThemeModule theme,String name){return theme.getSettings().stream().filter(s->s.getName().equals(name)).findFirst().orElseThrow();}
+ public static void main(String[] args)throws Exception {
+  Path dir=Files.createTempDirectory(Files.createDirectories(Path.of("build/reports/friend-tests")),"roundtrip-");
+  Path file=dir.resolve("friends.json");
+  FriendLabels labels=new FriendLabels(file);labels.save();labels=new FriendLabels(file);
+  check(labels.alias("Nobody")==null,"empty list");
+  for(int i=0;i<2000;i++){labels.added("Player"+i,"2026-10-11");labels.alias("Player"+i,"Alias "+i);labels.group("Player"+i,"Group "+(i%3));}
+  labels.added("PLAYER1","replacement");labels.alias("player1","  Polish alias  ");labels.save();
+  labels=new FriendLabels(file);
+  check(labels.date("PLAYER1").equals("2026-10-11"),"duplicate preserves date");
+  check(labels.alias(" PLAYER1 ").equals("Polish alias"),"case insensitive alias roundtrip");
+  check(labels.group("Player1999").equals("Group 1"),"large list groups survive");
+  List<String> commits=new ArrayList<>();var input=new TextInputController().getTextInputControllerByConsumer(commits::add);
+  input.setString("draft");input.isIntInt(0,256);check(commits.isEmpty()&&!input.isFlag(),"Escape cancels");
+  input.setString("saved");input.isIntInt(0,257);check(commits.equals(List.of("saved")),"Enter commits once");
+  labels.remove("PLAYER1");labels.save();labels=new FriendLabels(file);
+  check(labels.alias("player1")==null&&labels.date("player1").isEmpty(),"remove survives reload");
+  labels.save();Files.writeString(file,"broken");labels=new FriendLabels(file);
+  check(labels.alias("Player1999").equals("Alias 1999"),"backup recovery");
+  var row=new dev.bkclient.ui.clicksys.port.gui.widget.FriendRow("player","group","date");
+  row.onFloatFloat4(10,20);
+  row.update3();check(!row.check(),"removed row is inactive during fade");
+  check(!row.isIntDoubleDouble(0,15,25),"removed animating row rejects clicks");
+  check(!row.isIntIntInt2(0,0,257),"removed row has no editor focus");
+  ThemeModule theme=new ThemeModule();var effects=(ListSetting)find(theme,"Effects");
+  check(effects.getList2().size()==16,"all source effect selectors");
+  effects.addList(effects.getList2());check(theme.effectMask()==0,"removed effects cannot remain active from old configs");
+  theme.guiBlurRadius.setDouble(64);theme.guiDim.setDouble(100);theme.tintAmount.setDouble(.037);
+  JsonObject saved=new JsonObject();for(var setting:theme.getSettings())saved.add(setting.getNameHash(),setting.toJson());
+  ThemeModule loaded=new ThemeModule();loaded.loadSettings(saved);
+  check(loaded.effectMask()==0&&loaded.guiBlurRadius.getValue()==64&&loaded.guiDim.getValue()==100,"theme roundtrip");
+  check(Math.abs(loaded.tintAmount.getValue()-.037)<.00001,"source tint precision");
+  ((ChoiceSetting)find(loaded,"Display Mode")).setBoolean(false);
+  check(!find(loaded,"Effects").isVisible()&&!loaded.glass.isVisible()&&!loaded.cursorSize.isVisible(),"regular style dependencies");
+  ((ChoiceSetting)find(loaded,"Display Mode")).setBoolean(true);
+  check(!loaded.cursorSize.isVisible()&&!loaded.revealRadius.isVisible()&&!find(loaded,"Glass").isVisible()&&!find(loaded,"Effects").isVisible(),"removed controls stay hidden after load and style changes");
+  ((ListSetting)find(loaded,"Effects")).addList(List.of());
+  check(!loaded.cursorSize.isVisible()&&!loaded.revealRadius.isVisible(),"hidden inactive effect controls");
+  check(!loaded.check4()&&!loaded.check3(),"no effects outside GUI pass including HUD");
+  ThemeModule legacy=new ThemeModule();legacy.loadSettings(new JsonObject());
+  check(Math.abs(legacy.tintAmount.getValue()-.02)<.00001,"legacy default tint migration");
+  JsonObject old=new JsonObject();JsonObject oldAccent=new JsonObject();oldAccent.addProperty("value",true);
+  old.add(find(legacy,"Custom accent").getNameHash(),oldAccent);legacy.loadSettings(old);
+  check(legacy.colorMode.isString("Custom"),"old custom accent migrates without losing its key");
+  legacy.colorMode.addList(List.of("Water"));check(legacy.accentColor(false)==0xff40a4e8,"legacy accent does not lock new presets");
+  legacy.bindPersistence(() -> {});legacy.setEnabled(false);legacy.colorMode.addList(List.of("Winter"));
+  check(legacy.isEnabled(),"selecting a palette enables a previously disabled Appearance");
+  var base=dev.bkclient.ui.clicksys.port.enums.ThemePalette.INSTANCE2.getPalette();
+  var winter=legacy.resolvePalette(base,true);
+  legacy.colorMode.addList(List.of("Earth"));var earth=legacy.resolvePalette(base,true);
+  check(winter.getValue()!=earth.getValue() && winter.getValue6()!=earth.getValue6(),"preset changes actual background and accent, not just selector");
+  check(legacy.resolvePalette(base,false)==base,"palette stays unchanged outside GUI / HUD");
+  legacy.restoreEnabled(false);check(legacy.isEnabled(),"old disabled config with selected color is repaired");
+  check(legacy.getFloat2()==0 && legacy.getFloat4()==0 && legacy.getFloat6()==0 && legacy.getFloat7()==0 && legacy.getFloat9()==0 && legacy.getFloat11()==0 && legacy.getFloat13()==0 && legacy.getFloat14()==0,"retired glass effects are neutralized");
+  check(!find(legacy,"Display Mode").isVisible()&&!find(legacy,"Accent targets").isVisible(),"retired display and target selectors hidden");
+  ((ChoiceSetting)find(legacy,"Display Mode")).setBoolean(true);
+  check(!legacy.transparent()&&!legacy.check4(),"legacy transparent config cannot override fixed regular rendering");
+  ((ListSetting)find(legacy,"Accent targets")).addList(List.of());
+  var picker=(ColorSetting)find(legacy,"Accent");
+  check(picker.isVisible(),"custom color is available while a preset is selected");
+  legacy.setEnabled(false);picker.setInt(0xff11ee77);
+  check(legacy.isEnabled()&&legacy.colorMode.isString("Custom")&&legacy.accentColor(false)==0xff11ee77,"picker applies any RGB color and enables theme");
+  check(legacy.resolvePalette(base,true).getValue()!=base.getValue(),"legacy empty target list does not block color application");
+  legacy.colorMode.addList(List.of("Winter"));
+  JsonObject paletteSaved=new JsonObject();for(var setting:legacy.getSettings())paletteSaved.add(setting.getNameHash(),setting.toJson());
+  ThemeModule restored=new ThemeModule();restored.loadSettings(paletteSaved);
+  check(restored.colorMode.isString("Winter"),"loading saved custom RGB does not override selected preset");
+  check(((ColorSetting)find(restored,"Accent")).getInt3()==0xff11ee77,"arbitrary RGB survives reload");
+  System.out.println("Friends: empty/2000 entries, case duplicates, aliases/groups/dates, cancel/commit, removal, reload and backup recovery passed. Theme: palette application, disabled-state migration, removed controls/effects, persistence and GUI-only gate passed.");
+ }
+}

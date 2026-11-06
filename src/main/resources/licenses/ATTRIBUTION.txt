@@ -1,0 +1,24 @@
+BKClient Full - third-party attribution
+
+The MIT license for bkubiakdev's contributions does not replace upstream licenses.
+The supplied CC0-1.0 license text for imported world-visual components is
+included in third_party/world-visuals/LICENSE_CC0-1.0.
+This notice does not assign new terms to material without a supplied license.
+
+Lucide: assets/bkclient/licenses/lucide-LICENSE.txt.
+Tabler Icons, Pawel Kuna: licenses/tabler-icons-MIT.txt.
+Media service logos remain the property of their respective owners.
+
+Media icon sources:
+| Asset | Source | Pixels |
+|---|---|---|
+| spotify.png | https://developer.spotify.com/images/guidelines/design/2024-spotify-logo-icon.zip (Spotify_Primary_Logo_RGB_Green.png) | 939x940 |
+| soundcloud.png | https://cdn.prod.website-files.com/62a0a0168756b795debc65bc/6a1ed18a045ffd8b624643eb_6862460f240ad9ae4680f211_cloudmark-white.png.png (linked by https://soundcloud.com/company/media-kit) | 512x512 |
+| youtube.png | https://www.youtube.com/s/desktop/385d253e/img/favicon_144x144.png | 144x144 |
+| yandex_music.png | https://music.yandex.com/apple-touch-icon.png | 180x180 |
+| telegram.png | https://telegram.org/img/apple-touch-icon.png | 180x180 |
+| edge.png | https://edgecdn-embza6g8cacagcbn.z01.azurefd.net/welcome/static/favicon.png (linked by https://explore.microsoft.com/en-us/edge/) | 96x96 |
+
+Dependencies declared in build.gradle retain their own licenses, including
+Fabric, JNA, JavaCV/FFmpeg, ZXing and NanoHTTPD. Bundled native binaries, models,
+audio and fonts are not relicensed by the root MIT license.

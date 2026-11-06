@@ -1,0 +1,15 @@
+{
+  "vertex": "bkclient:core/sky_effects/sky_aurora",
+  "fragment": "bkclient:core/sky_effects/storm_flash",
+  "samplers": [],
+  "uniforms": [
+    {
+      "name": "Strength",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "vertex": "bkclient:core/sky_effects/sky_aurora",
+  "fragment": "bkclient:core/sky_effects/sky_cyberspace",
+  "samplers": [],
+  "uniforms": [
+    {
+      "name": "uTime",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0
+      ]
+    },
+    {
+      "name": "uSpeed",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "uAlpha",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "uFov",
+      "type": "float",
+      "count": 1,
+      "values": [
+        70
+      ]
+    },
+    {
+      "name": "uBrightness",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "uResolution",
+      "type": "float",
+      "count": 2,
+      "values": [
+        1280,
+        720
+      ]
+    },
+    {
+      "name": "uCamRight",
+      "type": "float",
+      "count": 3,
+      "values": [
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "uCamUp",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "name": "uCamForward",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0,
+        0,
+        -1
+      ]
+    },
+    {
+      "name": "uStarColor",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0.85,
+        0.78,
+        1
+      ]
+    },
+    {
+      "name": "uHorizonColor",
+      "type": "float",
+      "count": 3,
+      "values": [
+        0.74,
+        0.19,
+        1
+      ]
+    },
+    {
+      "name": "uGlow",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.65
+      ]
+    },
+    {
+      "name": "uFlow",
+      "type": "float",
+      "count": 1,
+      "values": [
+        0.25
+      ]
+    },
+    {
+      "name": "uStars",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "uAurora",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    },
+    {
+      "name": "uStarAmount",
+      "type": "float",
+      "count": 1,
+      "values": [
+        1
+      ]
+    }
+  ]
+}
